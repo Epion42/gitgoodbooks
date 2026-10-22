@@ -1,0 +1,12 @@
+{
+  "name": "git-good-books",
+  "description": "Book tracking and recommendation platform",
+  "main": "index.js",
+  "dependencies": {
+    "nodemon": "^3.1.14"
+  },
+  "scripts": {
+    "prestart": "npm install",
+    "start": "nodemon index.js"
+  }
+}
