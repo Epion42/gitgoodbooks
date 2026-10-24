@@ -2,7 +2,7 @@
 const express = require('express');
 const session = require('express-session');
 const handlebars = require('express-handlebars');
-const pgPromise = require('pg-promise');
+const pgPromise = require('pg-promise')();
 const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const axios = require('axios');
@@ -42,7 +42,7 @@ const dbConfig = {
   password : process.env.POSTGRES_PASSWORD
 };
 
-const db = pgp(dbConfig);
+const db = pgPromise(dbConfig);
 
 db.connect()
     .then(obj => {
@@ -50,6 +50,11 @@ db.connect()
       obj.done();
     })
     .catch(error => { console.log('ERROR:', error.message || error); });
+
+app.get('/', (req, res) => {
+  const message = 'Hello from webserver';
+  res.send(message);
+});
 
 // Set application to listen (run indefinitely)
 app.listen(3000);
