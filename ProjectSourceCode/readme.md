@@ -29,3 +29,9 @@ POSTGRES_PASSWORD="xxx"
 SESSION_SECRET="xxx"
 API_KEY="<google books api key>"
 ```
+
+# Caveats
+
+This Docker setup will create a Docker volume (`db_data`) where the database data will be stored.
+
+To remove persistent data (i.e. "startover fresh"), remove this Docker volume.
