@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS friend (
     PRIMARY KEY (userId1, userId2)
 );
 
-CREATE TABLE IF EXISTS forum (
+CREATE TABLE IF NOT EXISTS forum (
     threadId SERIAL PRIMARY KEY,
     firstUser INT NOT NULL,
     bookId VARCHAR(20) NOT NULL,
