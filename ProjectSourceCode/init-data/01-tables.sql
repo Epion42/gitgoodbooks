@@ -77,17 +77,19 @@ CREATE TABLE IF NOT EXISTS review (
 );
 
 CREATE TABLE IF NOT EXISTS journal (
+    journalId SERIAL PRIMARY KEY,
     bookId VARCHAR(20) NOT NULL,
     userId INT NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'TO_READ',
     score INT NOT NULL DEFAULT 0, -- Can be -1: Dislike, 1: Like, 0: UNREAD, easier to SUM(),
-    PRIMARY KEY (bookId, userId),
     CONSTRAINT validStatus CHECK (status IN ('TO_READ', 'IN_PROGRESS', 'COMPLETED'))
 );
 
-CREATE TABLE IF NOT EXISTS likedBooks (
-    userId INT NOT NULL,
-    bookId VARCHAR(20) NOT NULL
+CREATE TABLE IF NOT EXISTS journalEntry (
+    entryId SERIAL NOT NULL PRIMARY KEY,
+    parentJournalId INT NOT NULL,
+    entryMessage VARCHAR(1024) NOT NULL,
+    relevantPage INT DEFAULT 0 NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS bookReview ON review (bookId);
