@@ -3,12 +3,12 @@ CREATE TABLE IF NOT EXISTS books (
     bookTitle TEXT NOT NULL CHECK (bookTitle != ''),
     publishDate SMALLINT NOT NULL CHECK (publishDate > 0 AND publishDate < 2050),
     description TEXT,
-    bookLink VARCHAR(100) NOT NULL
+    bookLink VARCHAR(256) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS category (
     categoryId SERIAL PRIMARY KEY,
-    categoryName VARCHAR(32) UNIQUE NOT NULL
+    categoryName VARCHAR(64) UNIQUE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS bookToCategory (
