@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS friend (
 CREATE TABLE IF NOT EXISTS follower (
     targetUserId INT NOT NULL,
     followerUserId INT NOT NULL,
-    CONSTRAINT userOneToOne CHECK (userId1 < userId2),
+    CONSTRAINT userOneToOne CHECK (targetUserId != followerUserId),
     FOREIGN KEY (targetUserId) REFERENCES users (userId) ON DELETE CASCADE,
     FOREIGN KEY (followerUserId) REFERENCES users (userId) ON DELETE CASCADE,
     PRIMARY KEY (targetUserId, followerUserId)
