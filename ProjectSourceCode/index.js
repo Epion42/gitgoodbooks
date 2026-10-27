@@ -11,6 +11,9 @@ const axios = require('axios');
 const path = require('path');
 require('dotenv').config();
 
+const DbUtils = require('./dbUtils');
+const dbUtils = new DbUtils(db);
+
 if (!process.env.SESSION_SECRET) {
   throw new Error('SESSION_SECRET must be set');
 }
