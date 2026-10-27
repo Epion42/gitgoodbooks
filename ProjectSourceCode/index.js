@@ -12,7 +12,6 @@ const path = require('path');
 require('dotenv').config();
 
 const DbUtils = require('./dbUtils');
-const dbUtils = new DbUtils(db);
 
 if (!process.env.SESSION_SECRET) {
   throw new Error('SESSION_SECRET must be set');
@@ -133,6 +132,8 @@ function saveSession(req) {
     req.session.save(error => (error ? reject(error) : resolve()));
   });
 }
+
+const dbUtils = new DbUtils(db);
 
 // ************************************************
 // Static routes serving user-facing content
