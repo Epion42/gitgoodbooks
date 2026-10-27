@@ -83,13 +83,22 @@ class HttpError extends Error {
   }
 }
 
-function sendError(res, message, error) {
-  if (error instanceof HttpError) {
-    res.status(error.status).json({message : error.message});
+function sendError(res, error, options = {}) {
+  if (res.headersSent) {
+    console.error(error);
     return;
   }
-  console.error(error);
-  res.status(500).json({message, error : error.message});
+  const {
+    fallbackMessage = 'Something went wrong',
+    view = 'pages/error',
+    tabName = 'Error'
+  } = options;
+  const status = error instanceof HttpError ? error.status : 500;
+  const message = error instanceof HttpError ? error.message : fallbackMessage;
+  if (!(error instanceof HttpError))
+    console.error(error);
+  res.status(status).render(
+      view, {status : status, error : message, tab_name : tabName});
 }
 
 const auth = (req, res, next) => {
@@ -123,7 +132,9 @@ app.post('/login', async (req, res) => {
   const {username, password} = req.body;
   try {
   } catch (error) {
-    sendError(res, 'Error logging in', error);
+    if (error instanceof HttpError)
+      return sendError(res, error, {view : 'pages/login', tabName : 'Login'});
+    next(error);
   }
 });
 
@@ -131,7 +142,6 @@ app.post('/register', async (req, res) => {
   const {username, password} = req.body;
   try {
   } catch (error) {
-    sendError(res, 'Error registering', error);
   }
 });
 
