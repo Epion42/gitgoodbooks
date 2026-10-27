@@ -166,7 +166,7 @@ app.post('/login', async (req, res) => {
     const passwordMatch = await bcrypt.compare(password, passwordHash);
 
     if (!user || !passwordMatch)
-      throw new HttpError(401, 'Invalid useername or password.');
+      throw new HttpError(401, 'Invalid username or password.');
 
     await regenerateSession(req);
     req.session.user = {userId : user.userid, username : user.username};
