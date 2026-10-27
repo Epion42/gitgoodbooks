@@ -47,7 +47,7 @@ app.set('views', path.join(__dirname, 'views'));
 
 app.use('/resources', express.static(path.join(__dirname, 'resources')));
 
-app.use((req, res) ==.{
+app.use((req, res, next) => {
   res.locals.currentUser = req.session.user || null;
   next();
 });
@@ -99,7 +99,7 @@ const auth = (req, res, next) => {
   next();
 };
 
-function redirectIfAuthenticated = (req, res, next) => {
+const redirectIfAuthenticated = (req, res, next) => {
   if (req.session.user)
     return res.redirect('/home');
   next();
@@ -133,6 +133,16 @@ app.post('/register', async (req, res) => {
   } catch (error) {
     sendError(res, 'Error registering', error);
   }
+});
+
+app.post('/logout', auth, (req, res, nexjt) => {
+  req.session.destroy((error) => {
+    if (error)
+      return next(error);
+    res.clearCookie('connect.sid');
+    res.locals.currentUser = null;
+    res.render('pages/logout', {tab_name : 'Logged out'});
+  });
 });
 
 app.get('/home', async (req, res) => { res.render('pages/home'); });
