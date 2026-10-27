@@ -1,4 +1,6 @@
-// Pull in dependencies
+// ************************************************
+// Dependencies
+// ************************************************
 const express = require('express');
 const session = require('express-session');
 const handlebars = require('express-handlebars');
@@ -9,7 +11,9 @@ const axios = require('axios');
 const path = require('path');
 require('dotenv').config();
 
-// Setup Express instance
+// ************************************************
+// Express instance configuration
+// ************************************************
 const app = express();
 
 app.use(session({
@@ -33,7 +37,9 @@ app.set('views', path.join(__dirname, 'views'));
 
 app.use('/resources', express.static(path.join(__dirname, 'resources')));
 
-// Setup database instance
+// ************************************************
+// Database configuration
+// ************************************************
 const dbConfig = {
   host : 'db',
   port : 5432,
@@ -51,11 +57,63 @@ db.connect()
     })
     .catch(error => { console.log('ERROR:', error.message || error); });
 
-app.get('/', (req, res) => {
-  const message = 'Hello from webserver';
-  res.send(message);
+// ************************************************
+// Helpers
+// ************************************************
+class HttpError extends Error {
+  constructor(status, message) {
+    super(message);
+    this.name = 'HttpError';
+    this.status = status;
+  }
+}
+
+function sendError(res, message, error) {
+  if (error instanceof HttpError) {
+    res.status(error.status).json({message : error.message});
+    return;
+  }
+  console.error(error);
+  res.status(500).json({message, error : error.message});
+}
+
+const auth = (req, res, next) => {
+  if (!req.session.user) {
+    return res.redirect('/login');
+  }
+  next();
+};
+
+// ************************************************
+// Static routes serving user-facing content
+// ************************************************
+app.get('/', (req, res) => { res.redirect('/home'); });
+app.get('/login', (req, res) => { res.render('pages/login'); });
+app.get('/register', (req, res) => { res.render('pages/register'); });
+
+// ************************************************
+// Functional routes handling user interaction, etc.
+// ************************************************
+app.post('/login', async (req, res) => {
+  const {username, password} = req.body;
+  try {
+  } catch (error) {
+    sendError(res, 'Error logging in', error);
+  }
 });
 
-// Set application to listen (run indefinitely)
+app.post('/register', async (req, res) => {
+  const {username, password} = req.body;
+  try {
+  } catch (error) {
+    sendError(res, 'Error registering', error);
+  }
+});
+
+app.get('/home', auth, async (req, res) => { res.render('pages/home'); });
+
+// ************************************************
+// Run application
+// ************************************************
 app.listen(3000);
 console.log('Application listening on port 3000');
