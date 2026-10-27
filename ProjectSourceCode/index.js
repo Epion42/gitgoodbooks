@@ -135,7 +135,14 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.get('/home', auth, async (req, res) => { res.render('pages/home'); });
+app.get('/home', async (req, res) => { res.render('pages/home'); });
+
+// ************************************************
+// Fallback handlers
+// ************************************************
+app.use((req, res) => {
+  res.status(404).render('pages/404', {tab_name : 'Not Found'});
+});
 
 // ************************************************
 // Run application
