@@ -11,6 +11,10 @@ const axios = require('axios');
 const path = require('path');
 require('dotenv').config();
 
+if (!process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET must be set');
+}
+
 // ************************************************
 // Express instance configuration
 // ************************************************
@@ -19,7 +23,13 @@ const app = express();
 app.use(session({
   secret : process.env.SESSION_SECRET,
   saveUninitialized : false,
-  resave : false
+  resave : false,
+  cookie : {
+    httpOnly : true,
+    sameSite : 'lax',
+    secure : process.env.NODE_ENVJ === 'production',
+    maxAge : 1000 * 60 * 60 * 24
+  }
 }));
 
 app.use(bodyParser.json());
@@ -36,6 +46,11 @@ app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.use('/resources', express.static(path.join(__dirname, 'resources')));
+
+app.use((req, res) ==.{
+  res.locals.currentUser = req.session.user || null;
+  next();
+});
 
 // ************************************************
 // Database configuration
@@ -84,12 +99,22 @@ const auth = (req, res, next) => {
   next();
 };
 
+function redirectIfAuthenticated = (req, res, next) => {
+  if (req.session.user)
+    return res.redirect('/home');
+  next();
+};
+
 // ************************************************
 // Static routes serving user-facing content
 // ************************************************
 app.get('/', (req, res) => { res.redirect('/home'); });
-app.get('/login', (req, res) => { res.render('pages/login'); });
-app.get('/register', (req, res) => { res.render('pages/register'); });
+
+app.get('/login', redirectIfAuthenticated,
+        (req, res) => { res.render('pages/login'); });
+
+app.get('/register', redirectIfAuthenticated,
+        (req, res) => { res.render('pages/register'); });
 
 // ************************************************
 // Functional routes handling user interaction, etc.
