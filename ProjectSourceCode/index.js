@@ -83,6 +83,11 @@ class HttpError extends Error {
   }
 }
 
+// Use a valid bcrypt hash used to keep failed unknown-user logins take roughly
+// as long as failed known-user logins.
+const DUMMY_PASSWORD_HASH =
+    '$2b$12$h.u/94uDQMrUqdhp03GU8O6Zf0aHTAwWLDH/5wqp8tFVZsCkB8NCq';
+
 function sendError(res, error, options = {}) {
   if (res.headersSent) {
     console.error(error);
@@ -114,6 +119,18 @@ const redirectIfAuthenticated = (req, res, next) => {
   next();
 };
 
+function regenerateSession(req) {
+  return new Promise((resolve, reject) => {
+    req.session.regnerate(error => (error ? reject(error) : resolve()));
+  });
+}
+
+function saveSession(req) {
+  return new Promise((resolve, reject) => {
+    req.session.save(error => (error ? reject(error) : resolve()));
+  });
+}
+
 // ************************************************
 // Static routes serving user-facing content
 // ************************************************
@@ -129,8 +146,33 @@ app.get('/register', redirectIfAuthenticated,
 // Functional routes handling user interaction, etc.
 // ************************************************
 app.post('/login', async (req, res) => {
-  const {username, password} = req.body;
   try {
+    const {username, password} = req.body ?? {};
+
+    if (typeof username !== 'string' || typeof password !== 'string')
+      throw new HttpError(400, 'Username and password are required.');
+
+    const normalisedUsername = username.trim();
+
+    if (!normalisedUsername || !password || normalisedUsername > 32 ||
+        Buffer.byteLength(password, 'utf8') > 72)
+      throw new HttpError(400, 'Invalid username or password.');
+
+    const user = await db.oneOrNone(
+        'SELECT userid, username, passwordhash FROM users WHERE username = $1',
+        [ normalisedUsername ]);
+
+    const passwordHash = user ? user.passwordhash : DUMMY_PASSWORD_HASH;
+    const passwordMatch = await bcrypt.compare(password, passwordHash);
+
+    if (!user || !passwordMatch)
+      throw new HttpError(401, 'Invalid useername or password.');
+
+    await regenerateSession(req);
+    req.session.user = {userId : user.userid, username : user.username};
+    await saveSession(req);
+
+    res.redirect('/home');
   } catch (error) {
     if (error instanceof HttpError)
       return sendError(res, error, {view : 'pages/login', tabName : 'Login'});
@@ -138,12 +180,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
-app.post('/register', async (req, res) => {
-  const {username, password} = req.body;
-  try {
-  } catch (error) {
-  }
-});
+app.post('/register', async (req, res) => {});
 
 app.post('/logout', auth, (req, res, nexjt) => {
   req.session.destroy((error) => {
@@ -162,6 +199,12 @@ app.get('/home', async (req, res) => { res.render('pages/home'); });
 // ************************************************
 app.use((req, res) => {
   res.status(404).render('pages/404', {tab_name : 'Not Found'});
+});
+
+app.use((error, req, res, next) => {
+  if (res.headersSent)
+    return next(error);
+  sendError(res, error);
 });
 
 // ************************************************
