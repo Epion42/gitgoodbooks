@@ -3,43 +3,20 @@ class DbUtils {
         this.db = db;
     }
 
-    async isExistingUser(username) {
-        const query = "SELECT * FROM users WHERE username = $1;"
-        try {
-            await this.db.one(query, [username]);
-            return true;
-        }
-        catch (e) {
-            return false;
-        }
-
-        return false;
+    async getUserByUsername(username) {
+        const query = "SELECT userId, username, passwordHash FROM users WHERE username = $1;";
+        return await this.db.oneOrNone(query, [ username ]);
     }
 
-    async isValidUserCredentials(username, passwordHash) {
-        const query = "SELECT * FROM users WHERE username = $1 AND passwordHash = $2;"
-        try {
-            await this.db.one(query, [username, passwordHash]);
-            return true;
-        }
-        catch (e) {
-            return false;
-        }
-
-        return false;
+    async isExistingUser(username) {
+        const query = "SELECT 1 FROM users WHERE username = $1;";
+        const user = await this.db.oneOrNone(query, [ username ]);
+        return user !== null;
     }
 
     async createNewUser(username, passwordHash) {
-        const query = "INSERT INTO users (username, passwordHash) VALUES ($1, $2) RETURNING userId;"
-        try {
-            const userId = await this.db.one(query, [username, passwordHash]);
-            return userId.id;
-        }
-        catch (e) {
-            return false;
-        }
-
-        return false;
+        const query = "INSERT INTO users (username, passwordHash) VALUES ($1, $2) RETURNING userId, username;";
+        return await this.db.one(query, [ username, passwordHash ]);
     }
 }
 
