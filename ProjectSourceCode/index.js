@@ -29,7 +29,7 @@ app.use(session({
   cookie : {
     httpOnly : true,
     sameSite : 'lax',
-    secure : process.env.NODE_ENVJ === 'production',
+    secure : process.env.NODE_ENV === 'production',
     maxAge : 1000 * 60 * 60 * 24
   }
 }));
@@ -123,7 +123,7 @@ const redirectIfAuthenticated = (req, res, next) => {
 
 function regenerateSession(req) {
   return new Promise((resolve, reject) => {
-    req.session.regnerate(error => (error ? reject(error) : resolve()));
+    req.session.regenerate(error => (error ? reject(error) : resolve()));
   });
 }
 
@@ -141,15 +141,16 @@ const dbUtils = new DbUtils(db);
 app.get('/', (req, res) => { res.redirect('/home'); });
 
 app.get('/login', redirectIfAuthenticated,
-        (req, res) => { res.render('pages/login'); });
+        (req, res) => { res.render('pages/login', {tab_name : 'Login'}); });
 
-app.get('/register', redirectIfAuthenticated,
-        (req, res) => { res.render('pages/register'); });
+app.get(
+    '/register', redirectIfAuthenticated,
+    (req, res) => { res.render('pages/register', {tab_name : 'Register'}); });
 
 // ************************************************
 // Functional routes handling user interaction, etc.
 // ************************************************
-app.post('/login', async (req, res) => {
+app.post('/login', async (req, res, next) => {
   try {
     const {username, password} = req.body ?? {};
 
@@ -158,13 +159,11 @@ app.post('/login', async (req, res) => {
 
     const normalisedUsername = username.trim();
 
-    if (!normalisedUsername || !password || normalisedUsername > 32 ||
+    if (!normalisedUsername || !password || normalisedUsername.length > 32 ||
         Buffer.byteLength(password, 'utf8') > 72)
       throw new HttpError(400, 'Invalid username or password.');
 
-    const user = await db.oneOrNone(
-        'SELECT userid, username, passwordhash FROM users WHERE username = $1',
-        [ normalisedUsername ]);
+    const user = await dbUtils.getUserByUsername(normalisedUsername);
 
     const passwordHash = user ? user.passwordhash : DUMMY_PASSWORD_HASH;
     const passwordMatch = await bcrypt.compare(password, passwordHash);
@@ -184,9 +183,9 @@ app.post('/login', async (req, res) => {
   }
 });
 
-app.post('/register', async (req, res) => {});
+app.post('/register', async (req, res, next) => {});
 
-app.post('/logout', auth, (req, res, nexjt) => {
+app.post('/logout', auth, (req, res, next) => {
   req.session.destroy((error) => {
     if (error)
       return next(error);
