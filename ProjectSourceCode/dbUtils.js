@@ -5,7 +5,7 @@ class DbUtils {
 
     async getUserByUsername(username) {
         const query = "SELECT userId, username, passwordHash FROM users WHERE username = $1;";
-        return this.db.oneOrNone(query, [ username ]);
+        return await this.db.oneOrNone(query, [ username ]);
     }
 
     async isExistingUser(username) {
@@ -16,7 +16,7 @@ class DbUtils {
 
     async createNewUser(username, passwordHash) {
         const query = "INSERT INTO users (username, passwordHash) VALUES ($1, $2) RETURNING userId, username;";
-        return this.db.one(query, [ username, passwordHash ]);
+        return await this.db.one(query, [ username, passwordHash ]);
     }
 }
 
