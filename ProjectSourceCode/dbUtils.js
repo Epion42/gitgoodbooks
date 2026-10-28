@@ -10,13 +10,13 @@ class DbUtils {
 
     async isExistingUser(username) {
         const query = "SELECT 1 FROM users WHERE username = $1;";
-	const user = await this.db.oneOrNone(query, [ username ]);
+        const user = await this.db.oneOrNone(query, [ username ]);
         return user !== null;
     }
 
     async createNewUser(username, passwordHash) {
         const query = "INSERT INTO users (username, passwordHash) VALUES ($1, $2) RETURNING userId, username;";
-	return this.db.one(query, [ username, passwordHash ]);
+        return this.db.one(query, [ username, passwordHash ]);
     }
 }
 
