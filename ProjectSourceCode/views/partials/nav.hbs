@@ -15,14 +15,14 @@
         <ul class="navbar-nav ms-auto align-items-sm-center">
           {{#if currentUser }}
             <li class="nav-item me-sm-3">
-              <span class="navbar-text">{{currentUser.username}}</span>
+              <a class="nav-link" href="/profile">{{ currentUser.username }}</a>
             </li>
             <li class="nav-item">
               <form method="post" action="/logout">
                 <button type="submit" class="btn btn-outline-secondary btn-sm">Log out</button>
               </form>
             </li>
-          {{else}}
+          {{ else }}
             <li class="nav-item">
               <a class="btn btn-outline-primary btn-sm" href="/login">Log in</a>
             </li>
