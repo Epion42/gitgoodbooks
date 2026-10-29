@@ -183,7 +183,58 @@ app.post('/login', async (req, res, next) => {
   }
 });
 
-app.post('/register', async (req, res, next) => {});
+app.post('/register', redirectIfAuthenticated, async (req, res, next) => {
+  try {
+    const {username, password, confirmPassword} = req.body ?? {};
+
+    if (typeof username !== 'string' || typeof password !== 'string' ||
+        typeof confirmPassword !== 'string')
+      throw new HttpError(400, 'All fields are required.');
+
+    const normalisedUsername = username.trim();
+
+    if (normalisedUsername.length < 3 || normalisedUsername.length > 32)
+      throw new HttpError(400, 'Username must be 3-32 characters long.');
+
+    if (!/^[A-Za-z0-9_.-]+$/.test(normalisedUsername))
+      throw new HttpError(
+          400,
+          'Username may only contain letters, numbers, ".", "_" and "-".');
+
+    if (password.length < 8)
+      throw new HttpError(400, 'Password must be at least 8 characters long.');
+
+    if (password !== confirmPassword)
+      throw new HttpError(400, 'Passwords do not match.');
+
+    if (await dbUtils.isExistingUser(normalisedUsername))
+      throw new HttpError(409, 'That username is already taken.');
+
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    let newUser;
+    try {
+      newUser = await dbUtils.createNewUser(normalisedUsername, passwordHash);
+    } catch (dbError) {
+      // 23505 = two people registering the same name at once
+      if (dbError.code === '23505')
+        throw new HttpError(409, 'That username is already taken.');
+      throw dbError;
+    }
+
+    // Login user
+    await regenerateSession(req);
+    req.session.user = {userId : newUser.userid, username : newUser.username};
+    await saveSession(req);
+
+    res.redirect('/home');
+  } catch (error) {
+    if (error instanceof HttpError)
+      return sendError(res, error,
+                       {view : 'pages/register', tabName : 'Register'});
+    next(error);
+  }
+});
 
 app.post('/logout', auth, (req, res, next) => {
   req.session.destroy((error) => {
