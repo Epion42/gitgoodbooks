@@ -1,0 +1,30 @@
+/*style sheet for Login*/
+h1 {
+    font-family:"Courier New","Lucida Console", monospace;
+    font-weight: bold;
+    color: #004E64;
+    
+ 
+}
+div {
+    font-family:"Courier New","Lucida Console", monospace;
+    color: #004E64;
+}
+
+.btn-primary {
+    background-color:#25A18E !important;
+    border-color:#25A18E !important;
+}
+
+input {
+    border-color: #25A18E !important;
+    color: #25A18E !important;
+}
+
+.loginImage {
+    padding: 10%;
+    height: 1080px;
+    width: 920px;
+    object-fit: cover;
+}
+

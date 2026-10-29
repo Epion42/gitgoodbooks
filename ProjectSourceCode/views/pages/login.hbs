@@ -1,35 +1,46 @@
 <!-- Login Page Template -->
-<h1 class="mb-4">Log in</h1>
+<!-- Edits By: pami5470 -->
 
 {{#if error}}
   <div class="alert alert-danger" role="alert">{{error}}</div>
 {{/if}}
 
-<form method="POST" action="/login" class="col-12 col-md-6 col-lg-4">
-  <div class="mb-3">
-    <label for="username" class="form-label">Username</label>
-    <input
-      type="text"
-      class="form-control"
-      id="username"
-      name="username"
-      maxlength="32"
-      autocomplete="username"
-      required
-    />
-  </div>
+<link rel="stylesheet" href="../../resources/css/login.css"> <!--added stylesheet-->
+<div class="container">
+  <div class="row">
+    <div class="col-12 col-md-6 col-lg-6"> <!--added image div-->
+        <img src="..." alt="login page image">
+    </div>
 
-  <div class="mb-3">
-    <label for="password" class="form-label">Password</label>
-    <input
-      type="password"
-      class="form-control"
-      id="password"
-      name="password"
-      autocomplete="current-password"
-      required
-    />
-  </div>
+    <form method="POST" action="/login" class="col-12 col-md-6 col-lg-6">
+      <h1 class="mb-4">Login</h1> <!-- Edited spelling on Login-->
+      <div class="mb-3">
+        <label for="username" class="form-label">Username</label>
+        <input
+          type="text"
+          class="form-control"
+          id="username"
+          name="username"
+          maxlength="32"
+          autocomplete="username"
+          required
+        />
+      </div>
 
-  <button type="submit" class="btn btn-primary">Log in</button>
-</form>
+      <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input
+          type="password"
+          class="form-control"
+          id="password"
+          name="password"
+          autocomplete="current-password"
+          required
+        />
+      </div>
+
+      <button type="submit" class="btn btn-primary">Login</button> <!-- Edited Login-->
+    </form>
+
+  </div>
+</div>
