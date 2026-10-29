@@ -1,22 +1,21 @@
 <!-- Need to change the nav to fit in a search bar, login/logout options, and logo -->
 <header>
  <nav class="navbar navbar-expand-sm border-bottom">
-   <div class="container">
-     <button
-       class="navbar-toggler ms-auto"
-       type="button"
-       data-bs-toggle="collapse"
-       data-bs-target="#navbar-collapse"
-       aria-controls="navbar"
-       aria-expanded="false"
-       aria-label="Toggle navigation">
-       <span class="navbar-toggler-icon"></span>
-     </button>
-     <div class="collapse navbar-collapse" id="navbar-collapse">
-       <ul class="navbar-nav me-auto">
-         
-       </ul>
-     </div>
-   </div>
- </nav>
+   <div class="container-fluid">
+    <a class="navbar-brand" href="#">
+        <img src="#" alt="GitGoodBooks" width="24" height="24" class="d-inline-block align-text-top">
+    </a>
+
+    <form class="container-md d-flex" action="/search" method="POST">
+        <input class="form-control me-2" placeholder="Search" name="search">
+        <button class="btn btn-outline-secondary" type="submit"><img src="#" alt="Search" width="16" height="16"></button>
+    </form>
+
+    <ul class="navbar-nav me-auto mb-2 ">
+      {{#if logged_in}}
+        <li class="nav-item"><a class="nav-link" href="#">Account</a></li>
+      {{else}}
+        <li class="nav-item"><a class="nav-link" href="#">Login</a></li>
+      {{/if}}
+    </ul>
 </header>
