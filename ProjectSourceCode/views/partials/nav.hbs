@@ -16,7 +16,7 @@
        <ul class="navbar-nav ms-auto align-items-sm-center">
          {{#if currentUser}}
            <li class="nav-item me-sm-3">
-             <span class="navbar-text">{{currentUser.username}}</span>
+             <a class="nav-link" href="/profile">{{currentUser.username}}</a>
            </li>
            <li class="nav-item">
              <form method="POST" action="/logout">
