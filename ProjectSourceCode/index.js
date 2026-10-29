@@ -129,6 +129,13 @@ app.get("/register", redirectIfAuthenticated, (req, res) => {
   res.render("pages/register", { tab_name: "Register" });
 });
 
+app.get("/profile", auth, (req, res) => {
+  res.render("pages/profile", {
+    tab_name: "Profile",
+    updated: req.query.updated === "1",
+  });
+});
+
 // ************************************************
 // Functional routes handling user interaction, etc.
 // ************************************************
@@ -238,7 +245,7 @@ app.post("/logout", auth, (req, res, next) => {
 });
 
 app.get("/home", async (req, res) => {
-  res.render("pages/home");
+  res.render("pages/home", { tab_name: "Home" });
 });
 
 // ************************************************
