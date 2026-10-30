@@ -28,7 +28,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         volumes:
-            - ${{ github.workspace }}/ProjectSourceCode/init-data:/docker-entrypoint-initdb.d
+            - ${{ github.workspace }}/ProjectSourceCode/init-data:/docker-entrypoint-initdb.d:ro
 
     env:
       NODE_ENV: test
