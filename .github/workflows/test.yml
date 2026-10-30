@@ -8,6 +8,10 @@ on:
 
 jobs:
   test:
+    name: Route + DB Test
+    defaults:
+        run:
+            working-directory: ./ProjectSourceCode
     runs-on: ubuntu-latest
     services:
       postgres:
