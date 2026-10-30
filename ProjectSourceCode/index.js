@@ -1,14 +1,15 @@
 // ************************************************
 // Dependencies
 // ************************************************
-const express = require('express');
-const session = require('express-session');
-const handlebars = require('express-handlebars');
-const bodyParser = require('body-parser');
-const bcrypt = require('bcryptjs');
-const axios = require('axios');
-const path = require('path');
-require('dotenv').config();
+const express = require("express");
+const session = require("express-session");
+const handlebars = require("express-handlebars");
+const pgPromise = require("pg-promise")();
+const bodyParser = require("body-parser");
+const bcrypt = require("bcryptjs");
+// const axios = require("axios");
+const path = require("path");
+require("dotenv").config();
 
 const DbUtils = require('./dbUtils');
 const dbUtils = new DbUtils();
