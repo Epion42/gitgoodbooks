@@ -1,0 +1,56 @@
+name: Node JS & PostgreSQL CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Route + DB Test
+    defaults:
+        run:
+            working-directory: ./ProjectSourceCode
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        volumes:
+            - ${{ github.workspace }}/ProjectSourceCode/init-data:/docker-entrypoint-initdb.d:ro
+
+    env:
+      NODE_ENV: test
+      SESSION_SECRET: 'This is a test secret for github automation'
+      DB_HOST: localhost
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: test_db
+
+    steps:
+      - name: Checkout code repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js environment
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: ProjectSourceCode/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test

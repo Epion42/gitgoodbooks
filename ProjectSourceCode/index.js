@@ -4,7 +4,6 @@
 const express = require('express');
 const session = require('express-session');
 const handlebars = require('express-handlebars');
-const pgPromise = require('pg-promise')();
 const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const axios = require('axios');
@@ -12,6 +11,7 @@ const path = require('path');
 require('dotenv').config();
 
 const DbUtils = require('./dbUtils');
+const dbUtils = new DbUtils();
 
 if (!process.env.SESSION_SECRET) {
   throw new Error('SESSION_SECRET must be set');
@@ -53,26 +53,6 @@ app.use((req, res, next) => {
   res.locals.currentUser = req.session.user || null;
   next();
 });
-
-// ************************************************
-// Database configuration
-// ************************************************
-const dbConfig = {
-  host : 'db',
-  port : 5432,
-  database : process.env.POSTGRES_DB,
-  user : process.env.POSTGRES_USER,
-  password : process.env.POSTGRES_PASSWORD
-};
-
-const db = pgPromise(dbConfig);
-
-db.connect()
-    .then(obj => {
-      console.log('Database connection success');
-      obj.done();
-    })
-    .catch(error => { console.log('ERROR:', error.message || error); });
 
 // ************************************************
 // Helpers
@@ -133,8 +113,6 @@ function saveSession(req) {
   });
 }
 
-const dbUtils = new DbUtils(db);
-
 // ************************************************
 // Static routes serving user-facing content
 // ************************************************
@@ -164,7 +142,7 @@ app.post('/login', async (req, res, next) => {
       throw new HttpError(400, 'Invalid username or password.');
 
     const user = await dbUtils.getUserByUsername(normalisedUsername);
-
+    
     const passwordHash = user ? user.passwordhash : DUMMY_PASSWORD_HASH;
     const passwordMatch = await bcrypt.compare(password, passwordHash);
 
@@ -264,5 +242,9 @@ app.use((error, req, res, next) => {
 // ************************************************
 // Run application
 // ************************************************
-app.listen(3000);
-console.log('Application listening on port 3000');
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(3000);
+  console.log('Application listening on port 3000');
+}
+
+module.exports = app;
