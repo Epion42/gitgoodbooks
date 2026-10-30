@@ -39,7 +39,7 @@ jobs:
       - name: Set up Node.js environment
         uses: actions/setup-node@v6
         with:
-          node-version: 'lts'
+          node-version: '24'
           cache: 'npm'
           cache-dependency-path: ProjectSourceCode/package-lock.json
 

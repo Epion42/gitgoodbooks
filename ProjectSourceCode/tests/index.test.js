@@ -112,18 +112,9 @@ describe('db createNewUser', () => {
 
         expect(createResponse.userid).toBe(11);
         expect(createResponse.username).toBe('testUser11');
-        expect(createResponse.isnew).toBe(true);
 
         const getUser = await dbUtils.isExistingUser('testUser11');
 
         expect(getUser).toBe(true);
-    });
-
-    it('should return a false flag for isNew', async () => {
-        const createResponse = await dbUtils.createNewUser('testUser10', 'testHash');
-
-        expect(createResponse.userid).toBe(10);
-        expect(createResponse.username).toBe('testUser10');
-        expect(createResponse.isnew).toBe(false);
     });
 });

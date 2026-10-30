@@ -4,13 +4,12 @@ const pgPromise = require('pg-promise')();
 // Database configuration
 // ************************************************
 const dbConfig = {
-  host : proccess.env.DB_HOST || 'db',
+  host : process.env.DB_HOST || 'db',
   port : 5432,
   database : process.env.POSTGRES_DB,
   user : process.env.POSTGRES_USER,
   password : process.env.POSTGRES_PASSWORD
 };
-
 const db = pgPromise(dbConfig);
 
 db.connect()
@@ -35,12 +34,7 @@ class DbUtils {
     }
 
     async createNewUser(username, passwordHash) {
-        const query = `
-            INSERT INTO users (username, passwordHash) 
-            VALUES ($1, $2) 
-            ON CONFLICT (username) 
-            DO UPDATE SET username = EXCLUDED.username 
-            RETURNING userId, username, (xmax = 0) AS isNew;`;
+        const query = "INSERT INTO users (username, passwordHash) VALUES ($1, $2) RETURNING userId, username;";
         return await db.one(query, [ username, passwordHash ]);
     }
 }
