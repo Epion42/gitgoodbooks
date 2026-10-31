@@ -1,32 +1,40 @@
 <!-- Need to change the nav to fit in a search bar, login/logout options, and logo -->
 <header>
-  <nav class="navbar navbar-expand-sm border-bottom">
-    <div class="container">
-      <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-collapse"
-        aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbar-collapse">
-        <form method="GET" action="/search" class="d-flex me-sm-3">
-          <input type="search" class="form-control form-control-sm" name="q" placeholder="Search books" />
-        </form>
-        <ul class="navbar-nav ms-auto align-items-sm-center">
-          {{#if currentUser}}
-          <li class="nav-item me-sm-3">
-            <span class="navbar-text">{{currentUser.username}}</span>
-          </li>
-          <li class="nav-item">
-            <form method="POST" action="/logout">
-              <button type="submit" class="btn btn-outline-secondary btn-sm">Log out</button>
-            </form>
-          </li>
-          {{else}}
-          <li class="nav-item">
-            <a class="btn btn-outline-primary btn-sm" href="/login">Log in</a>
-          </li>
-          {{/if}}
-        </ul>
-      </div>
-    </div>
-  </nav>
+    <nav class="navbar navbar-expand-sm border-bottom">
+        <div class="container">
+            <button class="navbar-toggler ms-auto"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbar-collapse"
+                    aria-controls="navbar"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbar-collapse">
+                <form method="get" action="/search" class="d-flex me-sm-3">
+                    <input type="search"
+                           class="form-control form-control-sm"
+                           name="q"
+                           placeholder="Search books" />
+                </form>
+                <ul class="navbar-nav ms-auto align-items-sm-center">
+                    {{#if currentUser }}
+                        <li class="nav-item me-sm-3">
+                            <span class="navbar-text">{{currentUser.username}}</span>
+                        </li>
+                        <li class="nav-item">
+                            <form method="post" action="/logout">
+                                <button type="submit" class="btn btn-outline-secondary btn-sm">Log out</button>
+                            </form>
+                        </li>
+                    {{else}}
+                        <li class="nav-item">
+                            <a class="btn btn-outline-primary btn-sm" href="/login">Log in</a>
+                        </li>
+                    {{/if}}
+                </ul>
+            </div>
+        </div>
+    </nav>
 </header>
