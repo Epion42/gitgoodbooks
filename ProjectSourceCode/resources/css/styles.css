@@ -1,1 +1,23 @@
-/* This is our additional stylesheet! */
+:root {
+    --dark-teal: #004E64FF;
+    --verdigris: #25A18E;
+    --aquamarine: #9FFFCBFF;
+    --honey-bronze: #F4AC45FF;
+    --lavendar-blush: #FFF2F1FF;
+}
+
+.btn-outline-primary{
+    border-color: var(--aquamarine);
+    color: var(--aquamarine);
+}
+
+.navbar{
+    background-color: var(--honey-bronze);
+}
+
+footer{
+    background-color: var(--dark-teal);
+}
+footer p{
+    color: white;
+}

@@ -1,20 +1,20 @@
 // ************************************************
 // Dependencies
 // ************************************************
-const express = require('express');
-const session = require('express-session');
-const handlebars = require('express-handlebars');
-const pgPromise = require('pg-promise')();
-const bodyParser = require('body-parser');
-const bcrypt = require('bcryptjs');
-const axios = require('axios');
-const path = require('path');
-require('dotenv').config();
+const express = require("express");
+const session = require("express-session");
+const handlebars = require("express-handlebars");
+const pgPromise = require("pg-promise")();
+const bodyParser = require("body-parser");
+const bcrypt = require("bcryptjs");
+// const axios = require("axios");
+const path = require("path");
+require("dotenv").config();
 
-const DbUtils = require('./dbUtils');
+const DbUtils = require("./dbUtils");
 
 if (!process.env.SESSION_SECRET) {
-  throw new Error('SESSION_SECRET must be set');
+  throw new Error("SESSION_SECRET must be set");
 }
 
 // ************************************************
@@ -22,32 +22,34 @@ if (!process.env.SESSION_SECRET) {
 // ************************************************
 const app = express();
 
-app.use(session({
-  secret : process.env.SESSION_SECRET,
-  saveUninitialized : false,
-  resave : false,
-  cookie : {
-    httpOnly : true,
-    sameSite : 'lax',
-    secure : process.env.NODE_ENV === 'production',
-    maxAge : 1000 * 60 * 60 * 24
-  }
-}));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    saveUninitialized: false,
+    resave: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 1000 * 60 * 60 * 24,
+    },
+  }),
+);
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended : true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 const hbs = handlebars.create({
-  extname : 'hbs',
-  layoutsDir : __dirname + '/views/layouts',
-  partialsDir : __dirname + '/views/partials',
+  extname: "hbs",
+  layoutsDir: __dirname + "/views/layouts",
+  partialsDir: __dirname + "/views/partials",
 });
 
-app.engine('hbs', hbs.engine);
-app.set('view engine', 'hbs');
-app.set('views', path.join(__dirname, 'views'));
+app.engine("hbs", hbs.engine);
+app.set("view engine", "hbs");
+app.set("views", path.join(__dirname, "views"));
 
-app.use('/resources', express.static(path.join(__dirname, 'resources')));
+app.use("/resources", express.static(path.join(__dirname, "resources")));
 
 app.use((req, res, next) => {
   res.locals.currentUser = req.session.user || null;
@@ -58,21 +60,23 @@ app.use((req, res, next) => {
 // Database configuration
 // ************************************************
 const dbConfig = {
-  host : 'db',
-  port : 5432,
-  database : process.env.POSTGRES_DB,
-  user : process.env.POSTGRES_USER,
-  password : process.env.POSTGRES_PASSWORD
+  host: "db",
+  port: 5432,
+  database: process.env.POSTGRES_DB,
+  user: process.env.POSTGRES_USER,
+  password: process.env.POSTGRES_PASSWORD,
 };
 
 const db = pgPromise(dbConfig);
 
 db.connect()
-    .then(obj => {
-      console.log('Database connection success');
-      obj.done();
-    })
-    .catch(error => { console.log('ERROR:', error.message || error); });
+  .then((obj) => {
+    console.log("Database connection success");
+    obj.done();
+  })
+  .catch((error) => {
+    console.log("ERROR:", error.message || error);
+  });
 
 // ************************************************
 // Helpers
@@ -80,7 +84,7 @@ db.connect()
 class HttpError extends Error {
   constructor(status, message) {
     super(message);
-    this.name = 'HttpError';
+    this.name = "HttpError";
     this.status = status;
   }
 }
@@ -88,7 +92,7 @@ class HttpError extends Error {
 // Use a valid bcrypt hash used to keep failed unknown-user logins take roughly
 // as long as failed known-user logins.
 const DUMMY_PASSWORD_HASH =
-    '$2b$12$h.u/94uDQMrUqdhp03GU8O6Zf0aHTAwWLDH/5wqp8tFVZsCkB8NCq';
+  "$2b$12$h.u/94uDQMrUqdhp03GU8O6Zf0aHTAwWLDH/5wqp8tFVZsCkB8NCq";
 
 function sendError(res, error, options = {}) {
   if (res.headersSent) {
@@ -96,40 +100,39 @@ function sendError(res, error, options = {}) {
     return;
   }
   const {
-    fallbackMessage = 'Something went wrong',
-    view = 'pages/error',
-    tabName = 'Error'
+    fallbackMessage = "Something went wrong",
+    view = "pages/error",
+    tabName = "Error",
   } = options;
   const status = error instanceof HttpError ? error.status : 500;
   const message = error instanceof HttpError ? error.message : fallbackMessage;
-  if (!(error instanceof HttpError))
-    console.error(error);
-  res.status(status).render(
-      view, {status : status, error : message, tab_name : tabName});
+  if (!(error instanceof HttpError)) console.error(error);
+  res
+    .status(status)
+    .render(view, { status: status, error: message, tab_name: tabName });
 }
 
 const auth = (req, res, next) => {
   if (!req.session.user) {
-    return res.redirect('/login');
+    return res.redirect("/login");
   }
   next();
 };
 
 const redirectIfAuthenticated = (req, res, next) => {
-  if (req.session.user)
-    return res.redirect('/home');
+  if (req.session.user) return res.redirect("/home");
   next();
 };
 
 function regenerateSession(req) {
   return new Promise((resolve, reject) => {
-    req.session.regenerate(error => (error ? reject(error) : resolve()));
+    req.session.regenerate((error) => (error ? reject(error) : resolve()));
   });
 }
 
 function saveSession(req) {
   return new Promise((resolve, reject) => {
-    req.session.save(error => (error ? reject(error) : resolve()));
+    req.session.save((error) => (error ? reject(error) : resolve()));
   });
 }
 
@@ -138,30 +141,37 @@ const dbUtils = new DbUtils(db);
 // ************************************************
 // Static routes serving user-facing content
 // ************************************************
-app.get('/', (req, res) => { res.redirect('/home'); });
+app.get("/", (req, res) => {
+  res.redirect("/home");
+});
 
-app.get('/login', redirectIfAuthenticated,
-        (req, res) => { res.render('pages/login', {tab_name : 'Login'}); });
+app.get("/login", redirectIfAuthenticated, (req, res) => {
+  res.render("pages/login", { tab_name: "Login" });
+});
 
-app.get(
-    '/register', redirectIfAuthenticated,
-    (req, res) => { res.render('pages/register', {tab_name : 'Register'}); });
+app.get("/register", redirectIfAuthenticated, (req, res) => {
+  res.render("pages/register", { tab_name: "Register" });
+});
 
 // ************************************************
 // Functional routes handling user interaction, etc.
 // ************************************************
-app.post('/login', async (req, res, next) => {
+app.post("/login", async (req, res, next) => {
   try {
-    const {username, password} = req.body ?? {};
+    const { username, password } = req.body ?? {};
 
-    if (typeof username !== 'string' || typeof password !== 'string')
-      throw new HttpError(400, 'Username and password are required.');
+    if (typeof username !== "string" || typeof password !== "string")
+      throw new HttpError(400, "Username and password are required.");
 
     const normalisedUsername = username.trim();
 
-    if (!normalisedUsername || !password || normalisedUsername.length > 32 ||
-        Buffer.byteLength(password, 'utf8') > 72)
-      throw new HttpError(400, 'Invalid username or password.');
+    if (
+      !normalisedUsername ||
+      !password ||
+      normalisedUsername.length > 32 ||
+      Buffer.byteLength(password, "utf8") > 72
+    )
+      throw new HttpError(400, "Invalid username or password.");
 
     const user = await dbUtils.getUserByUsername(normalisedUsername);
 
@@ -169,44 +179,101 @@ app.post('/login', async (req, res, next) => {
     const passwordMatch = await bcrypt.compare(password, passwordHash);
 
     if (!user || !passwordMatch)
-      throw new HttpError(401, 'Invalid username or password.');
+      throw new HttpError(401, "Invalid username or password.");
 
     await regenerateSession(req);
-    req.session.user = {userId : user.userid, username : user.username};
+    req.session.user = { userId: user.userid, username: user.username };
     await saveSession(req);
 
-    res.redirect('/home');
+    res.redirect("/home");
   } catch (error) {
     if (error instanceof HttpError)
-      return sendError(res, error, {view : 'pages/login', tabName : 'Login'});
+      return sendError(res, error, { view: "pages/login", tabName: "Login" });
     next(error);
   }
 });
 
-app.post('/register', async (req, res, next) => {});
+app.post("/register", redirectIfAuthenticated, async (req, res, next) => {
+  try {
+    const { username, password, confirmPassword } = req.body ?? {};
 
-app.post('/logout', auth, (req, res, next) => {
+    if (
+      typeof username !== "string" ||
+      typeof password !== "string" ||
+      typeof confirmPassword !== "string"
+    )
+      throw new HttpError(400, "All fields are required.");
+
+    const normalisedUsername = username.trim();
+
+    if (normalisedUsername.length < 3 || normalisedUsername.length > 32)
+      throw new HttpError(400, "Username must be 3-32 characters long.");
+
+    if (!/^[A-Za-z0-9_.-]+$/.test(normalisedUsername))
+      throw new HttpError(
+        400,
+        'Username may only contain letters, numbers, ".", "_" and "-".',
+      );
+
+    if (password.length < 8)
+      throw new HttpError(400, "Password must be at least 8 characters long.");
+
+    if (password !== confirmPassword)
+      throw new HttpError(400, "Passwords do not match.");
+
+    if (await dbUtils.isExistingUser(normalisedUsername))
+      throw new HttpError(409, "That username is already taken.");
+
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    let newUser;
+    try {
+      newUser = await dbUtils.createNewUser(normalisedUsername, passwordHash);
+    } catch (dbError) {
+      // 23505 = two people registering the same name at once
+      if (dbError.code === "23505")
+        throw new HttpError(409, "That username is already taken.");
+      throw dbError;
+    }
+
+    // Login user
+    await regenerateSession(req);
+    req.session.user = { userId: newUser.userid, username: newUser.username };
+    await saveSession(req);
+
+    res.redirect("/home");
+  } catch (error) {
+    if (error instanceof HttpError)
+      return sendError(res, error, {
+        view: "pages/register",
+        tabName: "Register",
+      });
+    next(error);
+  }
+});
+
+app.post("/logout", auth, (req, res, next) => {
   req.session.destroy((error) => {
-    if (error)
-      return next(error);
-    res.clearCookie('connect.sid');
+    if (error) return next(error);
+    res.clearCookie("connect.sid");
     res.locals.currentUser = null;
-    res.render('pages/logout', {tab_name : 'Logged out'});
+    res.render("pages/logout", { tab_name: "Logged out" });
   });
 });
 
-app.get('/home', async (req, res) => { res.render('pages/home'); });
+app.get("/home", async (req, res) => {
+  res.render("pages/home");
+});
 
 // ************************************************
 // Fallback handlers
 // ************************************************
 app.use((req, res) => {
-  res.status(404).render('pages/404', {tab_name : 'Not Found'});
+  res.status(404).render("pages/404", { tab_name: "Not Found" });
 });
 
 app.use((error, req, res, next) => {
-  if (res.headersSent)
-    return next(error);
+  if (res.headersSent) return next(error);
   sendError(res, error);
 });
 
@@ -214,4 +281,4 @@ app.use((error, req, res, next) => {
 // Run application
 // ************************************************
 app.listen(3000);
-console.log('Application listening on port 3000');
+console.log("Application listening on port 3000");

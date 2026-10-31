@@ -1,0 +1,56 @@
+name: Code Quality
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  js-quality:
+    name: JavaScript Quality
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./ProjectSourceCode
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: ProjectSourceCode/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check formatting
+        run: npx prettier --check "**/*.js"
+
+      - name: Run ESLint
+        if: ${{ !cancelled() }}
+        run: npx eslint "**/*.js"
+
+  djlint:
+    name: djLint Handlebars Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install djLint
+        run: pip install djlint
+
+      - name: Check Handlebars formatting
+        run: djlint ProjectSourceCode/views --check --profile=handlebars --extension hbs
+
+      - name: Lint Handlebars
+        if: ${{ !cancelled() }}
+        run: djlint ProjectSourceCode/views --lint --profile=handlebars --extension hbs
