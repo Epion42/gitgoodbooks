@@ -1,0 +1,9 @@
+[tool.djlint]
+profile = "handlebars"
+extension = "hbs"
+indent = 2
+max_line_length = 120
+format_css = false
+format_js = false
+preserve_blank_lines = true
+ignore = "H025"
