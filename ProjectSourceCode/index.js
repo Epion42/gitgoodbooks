@@ -7,7 +7,6 @@ const handlebars = require("express-handlebars");
 const pgPromise = require("pg-promise")();
 const bodyParser = require("body-parser");
 const bcrypt = require("bcryptjs");
-// const axios = require("axios");
 const path = require("path");
 require("dotenv").config();
 
