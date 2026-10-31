@@ -1,6 +1,23 @@
-/* https://coolors.co/004e64-25a18e-9fffcb-f4ac45-fff2f1 */
-@define-color dark-teal #004E64FF;
-@define-color verdigris #25A18E;
-@define-color aquamarine #9FFFCBFF;
-@define-color honey-bronze #F4AC45FF;
-@define-color lavender-blush #FFF2F1FF;
+:root {
+    --darkteal: #004E64FF;
+    --verdigris: #25A18E;
+    --aquamarine: #9FFFCBFF;
+    --honey-bronze: #F4AC45FF;
+    --lavendar-blush: #FFF2F1FF;
+}
+
+.btn-outline-primary{
+    border-color: var(--aquamarine);
+    color: var(--aquamarine);
+}
+
+.navbar{
+    background-color: var(--honey-bronze);
+}
+
+footer{
+    background-color: var(--darkteal);
+}
+footer p{
+    color: white;
+}
