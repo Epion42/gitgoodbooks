@@ -46,11 +46,11 @@ jobs:
           python-version: '3.12'
 
       - name: Install djLint
-        run: pip install djlint
+        run: pip install -r requirements-dev.txt
 
       - name: Check Handlebars formatting
-        run: djlint ProjectSourceCode/views --check --profile=handlebars --extension hbs
+        run: djlint ProjectSourceCode/views --check --configuration pyproject.toml --profile=handlebars --extension hbs
 
       - name: Lint Handlebars
         if: ${{ !cancelled() }}
-        run: djlint ProjectSourceCode/views --lint --profile=handlebars --extension hbs
+        run: djlint ProjectSourceCode/views --lint --configuration pyproject.toml --profile=handlebars --extension hbs
