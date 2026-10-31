@@ -1,0 +1,15 @@
+<div class="d-flex gap-4">
+  {{#if book.thumbnail}}<img src="{{book.thumbnail}}" alt="Cover of {{book.title}}" width="128" />{{/if}}
+  <div>
+    <h1>{{book.title}}</h1>
+    <p class="text-muted">
+      {{#each book.authors}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}
+      {{#if book.publishYear}}· {{book.publishYear}}{{/if}}
+      {{#if book.pageCount}}· {{book.pageCount}} pages{{/if}}
+    </p>
+    {{#each book.categories}}<span class="badge text-bg-secondary me-1">{{this}}</span>{{/each}}
+  </div>
+</div>
+
+{{#if book.description}}<p class="mt-4">{{book.description}}</p>{{/if}}
+<a class="btn btn-outline-primary" href="{{book.link}}" target="_blank" rel="noopener">View on Google Books</a>
