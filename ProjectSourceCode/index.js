@@ -6,7 +6,7 @@ const session = require('express-session');
 const handlebars = require('express-handlebars');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
-const axios = require('axios');
+//const axios = require('axios');
 const path = require('path');
 require('dotenv').config();
 
