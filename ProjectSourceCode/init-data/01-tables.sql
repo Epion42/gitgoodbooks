@@ -25,17 +25,6 @@ CREATE TABLE IF NOT EXISTS users (
     passwordHash VARCHAR(256) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS friend (
-    userId1 INT NOT NULL,
-    userId2 INT NOT NULL,
-    accepted BOOLEAN NOT NULL DEFAULT false,
-    CONSTRAINT userSelfFriend CHECK (userId1 != userId2),
-    CONSTRAINT userOneToOne CHECK (userId1 < userId2),
-    FOREIGN KEY (userId1) REFERENCES users (userId) ON DELETE CASCADE,
-    FOREIGN KEY (userId2) REFERENCES users (userId) ON DELETE CASCADE,
-    PRIMARY KEY (userId1, userId2)
-);
-
 CREATE TABLE IF NOT EXISTS follower (
     targetUserId INT NOT NULL,
     followerUserId INT NOT NULL,
@@ -69,7 +58,7 @@ CREATE TABLE IF NOT EXISTS review (
     bookId VARCHAR(20) NOT NULL,
     userId INT NOT NULL,
     reviewScore DECIMAL(2,1) NOT NULL CHECK (reviewScore <= 5.0 AND reviewScore > 0.0),
-    reviewMessage VARCHAR(512) NOT NULL,
+    reviewMessage VARCHAR(512),
     timePosted TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (bookId) REFERENCES books (bookId) ON DELETE CASCADE,
     FOREIGN KEY (userId) REFERENCES users (userId) ON DELETE CASCADE,
@@ -89,7 +78,8 @@ CREATE TABLE IF NOT EXISTS journalEntry (
     entryId SERIAL NOT NULL PRIMARY KEY,
     parentJournalId INT NOT NULL,
     entryMessage VARCHAR(1024) NOT NULL,
-    relevantPage INT DEFAULT 0 NOT NULL
+    timePosted TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP,
+    relevantPage INT DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS bookReview ON review (bookId);
