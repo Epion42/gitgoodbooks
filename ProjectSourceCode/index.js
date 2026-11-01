@@ -1,16 +1,16 @@
 // ************************************************
 // Dependencies
 // ************************************************
-const express = require('express');
-const session = require('express-session');
-const handlebars = require('express-handlebars');
-const bodyParser = require('body-parser');
-const bcrypt = require('bcryptjs');
+const express = require("express");
+const session = require("express-session");
+const handlebars = require("express-handlebars");
+const bodyParser = require("body-parser");
+const bcrypt = require("bcryptjs");
 //const axios = require('axios');
-const path = require('path');
-require('dotenv').config();
+const path = require("path");
+require("dotenv").config();
 
-const DbUtils = require('./dbUtils');
+const DbUtils = require("./dbUtils");
 const dbUtils = new DbUtils();
 
 if (!process.env.SESSION_SECRET) {
@@ -157,7 +157,7 @@ app.post("/login", async (req, res, next) => {
       throw new HttpError(400, "Invalid username or password.");
 
     const user = await dbUtils.getUserByUsername(normalisedUsername);
-    
+
     const passwordHash = user ? user.passwordhash : DUMMY_PASSWORD_HASH;
     const passwordMatch = await bcrypt.compare(password, passwordHash);
 
@@ -263,9 +263,9 @@ app.use((error, req, res, next) => {
 // ************************************************
 // Run application
 // ************************************************
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== "test") {
   app.listen(3000);
-  console.log('Application listening on port 3000');
+  console.log("Application listening on port 3000");
 }
 
 module.exports = app;
