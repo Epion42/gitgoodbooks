@@ -27,8 +27,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-        volumes:
-            - ${{ github.workspace }}/ProjectSourceCode/init-data:/docker-entrypoint-initdb.d:ro
 
     env:
       NODE_ENV: test
@@ -51,6 +49,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Insert test data to the db
+        run: |
+          PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$DB_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f ./init-data/01-tables.sql
+          PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$DB_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f ./init-data/02-data.sql
 
       - name: Run tests
         run: npm test
