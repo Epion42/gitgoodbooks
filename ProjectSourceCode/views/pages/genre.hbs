@@ -1,0 +1,15 @@
+<!-- Genre Page Template -->
+<a href="/browse" class="d-inline-block mb-2">← All genres</a>
+<h1 class="mb-4">{{genre.name}}</h1>
+{{> bookList }}
+{{#if totalPages }}
+  <nav class="d-flex justify-content-center align-items-center gap-3 mt-4">
+    {{#if prevPage }}
+      <a class="btn btn-outline-primary" href="?page={{prevPage}}">Previous</a>
+    {{/if}}
+    <span class="text-muted">Page {{page}} of {{totalPages}}</span>
+    {{#if nextPage }}
+      <a class="btn btn-outline-primary" href="?page={{nextPage}}">Next</a>
+    {{/if}}
+  </nav>
+{{/if}}
