@@ -2,6 +2,19 @@ const axios = require("axios");
 
 const BASE_URL = "https://www.googleapis.com/books/v1";
 
+function splitCategories(categories) {
+  const names = new Set();
+  for (const category of categories) {
+    category
+      .split("/")
+      .slice(0, 2)
+      .map((part) => part.trim())
+      .filter((part) => part && part !== "General")
+      .forEach((part) => names.add(part));
+  }
+  return [...names];
+}
+
 // Flatten a Google Books "volume" into the shape the app uses
 function normalizeVolume(volume) {
   const info = volume.volumeInfo ?? {};
@@ -16,7 +29,7 @@ function normalizeVolume(volume) {
     description: info.description
       ? info.description.replace(/<[^>]*>/g, "")
       : null,
-    categories: info.categories ?? [],
+    categories: splitCategories(info.categories ?? []),
     thumbnail: info.imageLinks?.thumbnail?.replace(/^http:/, "https:") ?? null,
     pageCount: info.pageCount ?? null,
     link: volume.accessInfo?.webReaderLink ?? info.previewLink ?? info.infoLink,
