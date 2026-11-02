@@ -11,6 +11,7 @@ const path = require("path");
 require("dotenv").config();
 
 const DbUtils = require("./dbUtils");
+const booksApi = require("./booksApi");
 
 if (!process.env.SESSION_SECRET) {
   throw new Error("SESSION_SECRET must be set");
@@ -269,6 +270,40 @@ app.post("/logout", auth, (req, res, next) => {
 
 app.get("/home", async (req, res) => {
   res.render("pages/home", { tab_name: "Home" });
+});
+
+app.get("/search", async (req, res, next) => {
+  try {
+    const query = typeof req.query.q === "string" ? req.query.q.trim() : "";
+    if (!query) return res.render("pages/search", { tab_name: "Search" });
+
+    const { books, totalItems } = await booksApi.searchBooks(query);
+    res.render("pages/search", {
+      tab_name: "Search",
+      query: query,
+      books: books,
+      totalItems: totalItems,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/books/:id", async (req, res, next) => {
+  try {
+    const bookId = req.params.id;
+    if (!/^[A-Za-z0-9_-]{1,20}$/.test(bookId))
+      throw new HttpError(404, "Book not found.");
+
+    const book = await booksApi.getBookById(bookId);
+    if (!book) throw new HttpError(404, "Book not found.");
+
+    if (book.publishYear) await dbUtils.saveBook(book);
+
+    res.render("pages/book", { tab_name: book.title, book: book });
+  } catch (error) {
+    next(error);
+  }
 });
 
 // ************************************************
