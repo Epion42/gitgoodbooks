@@ -1,14 +1,18 @@
 CREATE TABLE IF NOT EXISTS books (
     bookId VARCHAR(20) PRIMARY KEY,
     bookTitle TEXT NOT NULL CHECK (bookTitle != ''),
-    publishDate SMALLINT NOT NULL CHECK (publishDate > 0 AND publishDate < 2050),
+    authors TEXT[] NOT NULL DEFAULT '{}',
+    publishDate SMALLINT CHECK (publishDate > 0 AND publishDate < 2050),
     description TEXT,
+    thumbnail TEXT,
+    pageCount INT,
     bookLink VARCHAR(256) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS category (
     categoryId SERIAL PRIMARY KEY,
-    categoryName VARCHAR(64) UNIQUE NOT NULL
+    categoryName VARCHAR(64) UNIQUE NOT NULL,
+    slug VARCHAR(64) UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS bookToCategory (

@@ -12,6 +12,7 @@ require("dotenv").config();
 
 const DbUtils = require("./dbUtils");
 const dbUtils = new DbUtils();
+const booksApi = require("./booksApi");
 
 if (!process.env.SESSION_SECRET) {
   throw new Error("SESSION_SECRET must be set");
@@ -136,6 +137,10 @@ app.get("/profile", auth, (req, res) => {
   });
 });
 
+app.get("/profile/edit", auth, (req, res) => {
+  res.render("pages/profile-edit", { tab_name: "Edit profile" });
+});
+
 // ************************************************
 // Functional routes handling user interaction, etc.
 // ************************************************
@@ -235,6 +240,96 @@ app.post("/register", redirectIfAuthenticated, async (req, res, next) => {
   }
 });
 
+app.post("/profile/edit", auth, async (req, res, next) => {
+  try {
+    const { currentPassword, username, newPassword, confirmPassword } =
+      req.body ?? {};
+
+    if (
+      typeof currentPassword !== "string" ||
+      typeof username !== "string" ||
+      typeof newPassword !== "string" ||
+      typeof confirmPassword !== "string"
+    )
+      throw new HttpError(400, "All fields are required.");
+
+    const normalisedUsername = username.trim();
+
+    if (normalisedUsername.length < 3 || normalisedUsername.length > 32)
+      throw new HttpError(400, "Username must be 3-32 characters long.");
+
+    if (!/^[A-Za-z0-9_.-]+$/.test(normalisedUsername))
+      throw new HttpError(
+        400,
+        'Username may only contain letters, numbers, ".", "_" and "-".',
+      );
+
+    if (!currentPassword)
+      throw new HttpError(400, "Current password is required.");
+
+    if (newPassword || confirmPassword) {
+      if (!newPassword || !confirmPassword)
+        throw new HttpError(400, "Enter and confirm new password.");
+      if (newPassword.length < 8)
+        throw new HttpError(
+          400,
+          "New password must be at least 8 characters long.",
+        );
+      if (Buffer.byteLength(newPassword, "utf8") > 72)
+        throw new HttpError(400, "New password must be at most 72 bytes.");
+      if (newPassword !== confirmPassword)
+        throw new HttpError(400, "New password and confirmation do not match.");
+    }
+
+    const user = await dbUtils.getUserById(req.session.user.userId);
+    if (!user) throw new HttpError(400, "Unable to update profile.");
+
+    const passwordMatch = await bcrypt.compare(
+      currentPassword,
+      user.passwordhash,
+    );
+
+    if (!passwordMatch)
+      throw new HttpError(400, "Current password is incorrect.");
+
+    if (!newPassword && normalisedUsername === user.username)
+      throw new HttpError(400, "No changes were submitted.");
+
+    const passwordhash = newPassword
+      ? await bcrypt.hash(newPassword, 12)
+      : null;
+
+    let updatedUser;
+    try {
+      updatedUser = await dbUtils.updateUserProfile(
+        req.session.user.userId,
+        normalisedUsername,
+        passwordhash,
+      );
+    } catch (error) {
+      if (error.code === "23505")
+        throw new HttpError(409, "That username is already taken.");
+      throw error;
+    }
+
+    if (passwordhash) await regenerateSession(req);
+
+    req.session.user = {
+      userId: updatedUser.userid,
+      username: updatedUser.username,
+    };
+    await saveSession(req);
+    res.redirect("/profile?updated=1");
+  } catch (error) {
+    if (error instanceof HttpError)
+      return sendError(res, error, {
+        view: "pages/profile-edit",
+        tabName: "Edit profile",
+      });
+    next(error);
+  }
+});
+
 app.post("/logout", auth, (req, res, next) => {
   req.session.destroy((error) => {
     if (error) return next(error);
@@ -246,6 +341,79 @@ app.post("/logout", auth, (req, res, next) => {
 
 app.get("/home", async (req, res) => {
   res.render("pages/home", { tab_name: "Home" });
+});
+
+app.get("/search", async (req, res, next) => {
+  try {
+    const query = typeof req.query.q === "string" ? req.query.q.trim() : "";
+    if (!query) return res.render("pages/search", { tab_name: "Search" });
+
+    const { books, totalItems } = await booksApi.searchBooks(query);
+    res.render("pages/search", {
+      tab_name: "Search",
+      query: query,
+      books: books,
+      totalItems: totalItems,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/books/:id", async (req, res, next) => {
+  try {
+    const bookId = req.params.id;
+    if (!/^[A-Za-z0-9_-]{1,20}$/.test(bookId))
+      throw new HttpError(404, "Book not found.");
+
+    const book = await booksApi.getBookById(bookId);
+    if (!book) throw new HttpError(404, "Book not found.");
+
+    if (book.publishYear) await dbUtils.saveBook(book);
+
+    res.render("pages/book", { tab_name: book.title, book: book });
+  } catch (error) {
+    next(error);
+  }
+});
+
+const BROWSE_PAGE_SIZE = 24;
+
+app.get("/browse", async (req, res, next) => {
+  try {
+    const genres = await dbUtils.getGenres();
+    res.render("pages/browse", { tab_name: "Browse", genres: genres });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/browse/:slug", async (req, res, next) => {
+  try {
+    const genre = await dbUtils.getGenreBySlug(req.params.slug);
+    if (!genre) throw new HttpError(404, "Genre not found.");
+
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const { books, total } = await dbUtils.getBooksByCategory(
+      genre.categoryId,
+      BROWSE_PAGE_SIZE,
+      (page - 1) * BROWSE_PAGE_SIZE,
+    );
+
+    const totalPages = Math.max(1, Math.ceil(total / BROWSE_PAGE_SIZE));
+
+    res.render("pages/genre", {
+      tab_name: genre.name,
+      genre: genre,
+      books: books,
+      page: page,
+      totalPages: totalPages,
+      prevPage: page > 1 ? page - 1 : null,
+      nextPage: page < totalPages ? page + 1 : null,
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 // ************************************************
