@@ -1,3 +1,46 @@
 <!-- Register Page Template -->
-<h1>Register</h1>
-<!-- Registration form goes here. -->
+<!-- edited by: pami5470 -->
+
+
+{{#if error}}
+  <div class="alert alert-danger" role="alert">{{error}}</div>
+{{/if}}
+
+<link rel="stylesheet" href="../../resources/css/login.css"> <!--added stylesheet-->
+<div class="login-container">
+    <div class="login-image"> <!--added image div-->
+        <img src="../../resources/img/gitgoodbookslogin.png" alt="login page image">
+    </div>
+
+    <form method="POST" action="/register" class="login-form-section">
+      <h1 class="mb-4">Register</h1> <!-- Edited spelling on Login-->
+      <div class="mb-3">
+        <label for="username" class="form-label">Create Username</label>
+        <input
+          type="text"
+          class="form-control"
+          id="username"
+          name="username"
+          maxlength="32"
+          autocomplete="username"
+          required
+        />
+      </div>
+
+      <div class="mb-3">
+        <label for="password" class="form-label"> Create Password</label>
+        <input
+          type="password"
+          class="form-control"
+          id="password"
+          name="password"
+          autocomplete="current-password"
+          required
+        />
+      </div>
+
+      <button type="submit" class="btn btn-primary">Create Acccount</button> <!-- Edited Register NOT FUNCTIONING-->
+    </form>
+
+  
+</div>
