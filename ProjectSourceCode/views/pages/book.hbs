@@ -19,6 +19,13 @@
     {{#each book.categories }}
       <span class="badge text-bg-secondary me-1">{{this}}</span>
     {{/each}}
+    <p class=""mt-2 mb-0">
+      {{#if rating.count }}
+        <strong>{{rating.average}}</strong> / 5 · {{rating.count}} ratings
+      {{else}}
+        <span class="text-muted">No ratings yet</span>
+      {{/if}}
+    </p>
   </div>
 </div>
 {{#if book.description }}
@@ -28,3 +35,61 @@
    href="{{book.link}}"
    target="_blank"
    rel="noopener">View on Google Books</a>
+<section id="reviews" class="mt-5">
+  <h2 class="h4 mb-3">Ratings &amp; reviews</h2>
+  {{#if currentUser }}
+    <form method="post"
+          action="/books/{{book.bookId}}/review"
+          class="mb-4 col-12 col-md-8">
+      <fieldset class="mb-2">
+        <legend class="form-label fs-6">Your rating</legend>
+        {{#each starOptions }}
+          <input type="radio"
+                 class="btn-check"
+                 name="score"
+                 id="score-{{value}}"
+                 value="{{value}}"
+                 required
+                 {{#if checked }}checked{{/if}} />
+          <label class="btn btn-outline-warning" for="score-{{value}}">{{value}} ★</label>
+        {{/each}}
+      </fieldset>
+      <label for="message" class="form-label">Review (optional)</label>
+      <textarea class="form-control mb-2"
+                id="message"
+                name="message"
+                rows="3"
+                maxlength="512">{{myReview.message}}</textarea>
+      <button type="submit" class="btn btn-primary">
+        {{#if myReview }}
+          Update rating
+        {{else}}
+          Submit rating
+        {{/if}}
+      </button>
+    </form>
+    {{#if myReview }}
+      <form method="post"
+            action="/books/{{book.bookId}}/review/delete"
+            class="mb-4">
+        <button type="submit" class="btn btn-outline-danger btn-sm">Delete my rating</button>
+      </form>
+    {{/if}}
+  {{else}}
+    <p>
+      <a href="/login">Log in</a> to rate this book.
+    </p>
+  {{/if}}
+  {{#each reviews }}
+    <div class="border-bottom py-3">
+      <div class="d-flex justify-content-between">
+        <strong>{{username}}</strong>
+        <span class="text-muted">{{postedOn}}</span>
+      </div>
+      <div class="text-warning">{{stars}}</div>
+      {{#if message }}<p class="mb-0 mt-1">{{message}}</p>{{/if}}
+    </div>
+  {{else}}
+    <p class="text-muted">No reviews yet.</p>
+  {{/each}}
+</section>
