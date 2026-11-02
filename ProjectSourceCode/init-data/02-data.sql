@@ -26,3 +26,18 @@ INSERT INTO bookToCategory (bookId, categoryId) VALUES
 ('6WrhAAAAMAAJ', 5),
 ('F1wgqlNi8AMC', 6),
 ('9ygPPQAACAAJ', 1);
+
+INSERT INTO category (categoryName, slug) VALUES
+('Fiction', 'fiction'),
+('Science Fiction', 'science-fiction'),
+('Fantasy', 'fantasy'),
+('Mystery & Detective', 'mystery'),
+('Romance', 'romance'),
+('Juvenile Fiction', 'juvenile-fiction'),
+('Young Adult Fiction', 'young-adult'),
+('History', 'history'),
+('Biography & Autobiography', 'biography'),
+('Science', 'science'),
+('Poetry', 'poetry'),
+('Drama', 'drama')
+ON CONFLICT (categoryName) DO UPDATE SET slug = EXCLUDED.slug;

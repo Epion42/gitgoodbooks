@@ -306,6 +306,45 @@ app.get("/books/:id", async (req, res, next) => {
   }
 });
 
+const BROWSE_PAGE_SIZE = 24;
+
+app.get("/browse", async (req, res, next) => {
+  try {
+    const genres = await dbUtils.getGenres();
+    res.render("pages/browse", { tab_name: "Browse", genres: genres });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/browse/:slug", async (req, res, next) => {
+  try {
+    const genre = await dbUtils.getGenreBySlug(req.params.slug);
+    if (!genre) throw new HttpError(404, "Genre not found.");
+
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const { books, total } = await dbUtils.getBooksByCategory(
+      genre.categoryId,
+      BROWSE_PAGE_SIZE,
+      (page - 1) * BROWSE_PAGE_SIZE,
+    );
+
+    const totalPages = Math.max(1, Math.ceil(total / BROWSE_PAGE_SIZE));
+
+    res.render("pages/genre", {
+      tab_name: genre.name,
+      genre: genre,
+      books: books,
+      page: page,
+      totalPages: totalPages,
+      prevPage: page > 1 ? page - 1 : null,
+      nextPage: page < totalPages ? page + 1 : null,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // ************************************************
 // Fallback handlers
 // ************************************************
