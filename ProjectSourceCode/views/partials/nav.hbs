@@ -12,6 +12,12 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbar-collapse">
+        <form method="get" action="/search" class="d-flex me-sm-3">
+          <input type="search"
+                 class="form-control form-control-sm"
+                 name="q"
+                 placeholder="Search books" />
+        </form>
         <ul class="navbar-nav ms-auto align-items-sm-center">
           {{#if currentUser }}
             <li class="nav-item me-sm-3">
