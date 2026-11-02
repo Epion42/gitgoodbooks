@@ -111,3 +111,32 @@ WHERE status = 'TO_READ';
 CREATE OR REPLACE VIEW booksRead AS
 SELECT * FROM journal
 WHERE status IN ('IN_PROGRESS', 'COMPLETED');
+
+/*Potential tables for Journals*/
+CREATE TABLE IF NOT EXISTS journal (
+    journalId SERIAL PRIMARY KEY,
+    bookId VARCHAR(20) NOT NULL,
+    userId INT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'TO_READ',
+    score INT NOT NULL DEFAULT 0, -- -1: Dislike, 1: Like, 0: UNRATED
+    startedOn DATE,
+    finishedOn DATE,
+    currentPage INT NOT NULL DEFAULT 0 CHECK (currentPage >= 0),
+    FOREIGN KEY (bookId) REFERENCES books (bookId) ON DELETE CASCADE,
+    FOREIGN KEY (userId) REFERENCES users (userId) ON DELETE CASCADE,
+    CONSTRAINT validStatus CHECK (status IN ('TO_READ', 'IN_PROGRESS', 'COMPLETED')),
+    CONSTRAINT validScore CHECK (score IN (-1, 0, 1)),
+    CONSTRAINT validDates CHECK (finishedOn IS NULL OR startedOn IS NULL OR finishedOn >= startedOn),
+    CONSTRAINT uniqueJournalUserBook UNIQUE (bookId, userId)
+);
+
+CREATE TABLE IF NOT EXISTS journalEntry (
+    entryId SERIAL PRIMARY KEY,
+    parentJournalId INT NOT NULL,
+    entryMessage VARCHAR(1024) NOT NULL,
+    relevantPage INT NOT NULL DEFAULT 0,
+    timePosted TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (parentJournalId) REFERENCES journal (journalId) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS journalEntryParent ON journalEntry (parentJournalId);
