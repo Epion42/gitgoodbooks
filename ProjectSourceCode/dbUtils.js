@@ -25,6 +25,20 @@ class DbUtils {
     return await this.db.one(query, [username, passwordHash]);
   }
 
+  async getUserById(userId) {
+    const query =
+      "SELECT userId, username, passwordHash FROM users WHERE userId = $1;";
+    return await this.db.oneOrNone(query, [userId]);
+  }
+
+  async updateUserProfile(userId, username, passwordHash) {
+    const query = `UPDATE users
+      SET username = $2, passwordHash = COALESCE($3::varchar, passwordHash)
+      WHERE userId = $1
+      RETURNING userId, username;`;
+    return await this.db.one(query, [userId, username, passwordHash]);
+  }
+
   async saveBook(book) {
     return await this.db.tx(async (t) => {
       await t.none(

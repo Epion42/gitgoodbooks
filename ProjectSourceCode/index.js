@@ -160,6 +160,10 @@ app.get("/profile", auth, (req, res) => {
   });
 });
 
+app.get("/profile/edit", auth, (req, res) => {
+  res.render("pages/profile-edit", { tab_name: "Edit profile" });
+});
+
 // ************************************************
 // Functional routes handling user interaction, etc.
 // ************************************************
@@ -254,6 +258,96 @@ app.post("/register", redirectIfAuthenticated, async (req, res, next) => {
       return sendError(res, error, {
         view: "pages/register",
         tabName: "Register",
+      });
+    next(error);
+  }
+});
+
+app.post("/profile/edit", auth, async (req, res, next) => {
+  try {
+    const { currentPassword, username, newPassword, confirmPassword } =
+      req.body ?? {};
+
+    if (
+      typeof currentPassword !== "string" ||
+      typeof username !== "string" ||
+      typeof newPassword !== "string" ||
+      typeof confirmPassword !== "string"
+    )
+      throw new HttpError(400, "All fields are required.");
+
+    const normalisedUsername = username.trim();
+
+    if (normalisedUsername.length < 3 || normalisedUsername.length > 32)
+      throw new HttpError(400, "Username must be 3-32 characters long.");
+
+    if (!/^[A-Za-z0-9_.-]+$/.test(normalisedUsername))
+      throw new HttpError(
+        400,
+        'Username may only contain letters, numbers, ".", "_" and "-".',
+      );
+
+    if (!currentPassword)
+      throw new HttpError(400, "Current password is required.");
+
+    if (newPassword || confirmPassword) {
+      if (!newPassword || !confirmPassword)
+        throw new HttpError(400, "Enter and confirm new password.");
+      if (newPassword.length < 8)
+        throw new HttpError(
+          400,
+          "New password must be at least 8 characters long.",
+        );
+      if (Buffer.byteLength(newPassword, "utf8") > 72)
+        throw new HttpError(400, "New password must be at most 72 bytes.");
+      if (newPassword !== confirmPassword)
+        throw new HttpError(400, "New password and confirmation do not match.");
+    }
+
+    const user = await dbUtils.getUserById(req.session.user.userId);
+    if (!user) throw new HttpError(400, "Unable to update profile.");
+
+    const passwordMatch = await bcrypt.compare(
+      currentPassword,
+      user.passwordhash,
+    );
+
+    if (!passwordMatch)
+      throw new HttpError(400, "Current password is incorrect.");
+
+    if (!newPassword && normalisedUsername === user.username)
+      throw new HttpError(400, "No changes were submitted.");
+
+    const passwordhash = newPassword
+      ? await bcrypt.hash(newPassword, 12)
+      : null;
+
+    let updatedUser;
+    try {
+      updatedUser = await dbUtils.updateUserProfile(
+        req.session.user.userId,
+        normalisedUsername,
+        passwordhash,
+      );
+    } catch (error) {
+      if (error.code === "23505")
+        throw new HttpError(409, "That username is already taken.");
+      throw error;
+    }
+
+    if (passwordhash) await regenerateSession(req);
+
+    req.session.user = {
+      userId: updatedUser.userid,
+      username: updatedUser.username,
+    };
+    await saveSession(req);
+    res.redirect("/profile?updated=1");
+  } catch (error) {
+    if (error instanceof HttpError)
+      return sendError(res, error, {
+        view: "pages/profile-edit",
+        tabName: "Edit profile",
       });
     next(error);
   }

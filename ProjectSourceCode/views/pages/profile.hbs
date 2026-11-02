@@ -1,4 +1,10 @@
 <!-- Profile Page Template -->
 <h1 class="mb-4">Your profile</h1>
 
+{{#if updated }}
+  <div class="alert alert-success" role="alert">Profile updated.</div>
+{{/if}}
+
 <p><strong>Username:</strong> {{currentUser.username}}</p>
+
+<a class="btn btn-primary" href="/profile/edit">Edit profile</a>
