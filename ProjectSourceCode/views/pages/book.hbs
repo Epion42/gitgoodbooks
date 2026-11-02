@@ -19,7 +19,7 @@
     {{#each book.categories }}
       <span class="badge text-bg-secondary me-1">{{this}}</span>
     {{/each}}
-    <p class=""mt-2 mb-0">
+    <p class="mt-2 mb-0">
       {{#if rating.count }}
         <strong>{{rating.average}}</strong> / 5 · {{rating.count}} ratings
       {{else}}
@@ -50,7 +50,9 @@
                  id="score-{{value}}"
                  value="{{value}}"
                  required
-                 {{#if checked }}checked{{/if}} />
+                 {{#if checked }}
+                 checked
+                 {{/if }} />
           <label class="btn btn-outline-warning" for="score-{{value}}">{{value}} ★</label>
         {{/each}}
       </fieldset>
@@ -87,7 +89,9 @@
         <span class="text-muted">{{postedOn}}</span>
       </div>
       <div class="text-warning">{{stars}}</div>
-      {{#if message }}<p class="mb-0 mt-1">{{message}}</p>{{/if}}
+      {{#if message }}
+        <p class="mb-0 mt-1">{{message}}</p>
+      {{/if}}
     </div>
   {{else}}
     <p class="text-muted">No reviews yet.</p>

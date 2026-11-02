@@ -390,7 +390,6 @@ app.get("/books/:id", async (req, res, next) => {
       myReview: myReview,
       starOptions: starOptions,
     });
-
   } catch (error) {
     next(error);
   }

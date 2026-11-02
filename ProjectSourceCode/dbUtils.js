@@ -131,17 +131,19 @@ class DbUtils {
   async bookExists(bookId) {
     const query = "SELECT 1 FROM books WHERE bookId = $1;";
     return (await this.db.oneOrNone(query, [bookId])) !== null;
-  }  
+  }
 
   async getBookRating(bookId) {
-    const query = 'SELECT avgRating::float AS "average", ratingCount::int AS "count" FROM bookRatings WHERE bookId = $1';
+    const query =
+      'SELECT avgRating::float AS "average", ratingCount::int AS "count" FROM bookRatings WHERE bookId = $1';
     return (
       (await this.db.oneOrNone(query, [bookId])) ?? { average: null, count: 0 }
     );
   }
 
   async getUserReview(userId, bookId) {
-    const query = 'SELECT reviewScore::int AS "score", reviewMessage AS "message" FROM review WHERE userId = $1 AND bookId = $2';
+    const query =
+      'SELECT reviewScore::int AS "score", reviewMessage AS "message" FROM review WHERE userId = $1 AND bookId = $2';
     return await this.db.oneOrNone(query, [userId, bookId]);
   }
 
