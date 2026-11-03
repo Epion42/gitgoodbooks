@@ -54,3 +54,14 @@ jobs:
       - name: Lint Handlebars
         if: ${{ !cancelled() }}
         run: djlint ProjectSourceCode/views --lint --configuration pyproject.toml --profile=handlebars --extension hbs
+
+  check:
+    name: CRLF EOL Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Check line endings
+        run: python scripts/check_line_endings.py
