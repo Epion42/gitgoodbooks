@@ -64,4 +64,4 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Check line endings
-        run: python scripts/check_line_endings.py
+        run: python util/check_line_endings.py
