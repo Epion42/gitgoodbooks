@@ -1,45 +1,34 @@
 <!-- Login Page Template -->
-<!-- Edits By: pami5470 -->
-
-{{#if error}}
+<link rel="stylesheet" href="../../resources/css/login.css"> <!--added stylesheet-->
+<h1 class="mb-4">Login</h1> <!--changed spelling-->
+{{#if error }}
   <div class="alert alert-danger" role="alert">{{error}}</div>
 {{/if}}
-
-<link rel="stylesheet" href="../../resources/css/login.css"> <!--added stylesheet-->
-<div class="login-container">
-    <div class="login-image"> <!--added image div-->
-        <img src="../../resources/img/gitgoodbookslogin.png" alt="login page image">
+<div class="login-container"> <!--added div-container-->
+   <div class="login-image"> <!--added image div-->
+       <img src="../../resources/img/gitgoodbookslogin.png" alt="login page image">
+   </div>
+  <form method="post" action="/login" class="col-12 col-md-6 col-lg-4">
+    <div class="mb-3">
+      <label for="username" class="form-label">Username</label>
+      <input type="text"
+             class="form-control"
+             id="username"
+             name="username"
+             maxlength="32"
+             autocomplete="username"
+             required />
     </div>
-
-    <form method="POST" action="/login" class="login-form-section">
-      <h1 class="mb-4">Login</h1> <!-- Edited spelling on Login-->
-      <div class="mb-3">
-        <label for="username" class="form-label">Username</label>
-        <input
-          type="text"
-          class="form-control"
-          id="username"
-          name="username"
-          maxlength="32"
-          autocomplete="username"
-          required
-        />
-      </div>
-
-      <div class="mb-3">
-        <label for="password" class="form-label">Password</label>
-        <input
-          type="password"
-          class="form-control"
-          id="password"
-          name="password"
-          autocomplete="current-password"
-          required
-        />
-      </div>
-      <button type="submit" class="btn btn-primary">Login</button> <!-- Edited Login-->
-      <a class= "reg" href="/register">No Account? Register</a>
-    </form>
-
-  
-</div>
+    <div class="mb-3">
+      <label for="password" class="form-label">Password</label>
+      <input type="password"
+             class="form-control"
+             id="password"
+             name="password"
+             autocomplete="current-password"
+             required />
+    </div>
+    <button type="submit" class="btn btn-primary">Login</button> <!--edited spelling-->
+    <a class= "reg" href="/register">No Account? Register</a> <!--added registration option-->
+  </form>
+ </div>

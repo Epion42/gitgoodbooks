@@ -1,46 +1,51 @@
 <!-- Register Page Template -->
-<!-- edited by: pami5470 -->
-
-
-{{#if error}}
-  <div class="alert alert-danger" role="alert">{{error}}</div>
-{{/if}}
-
 <link rel="stylesheet" href="../../resources/css/login.css"> <!--added stylesheet-->
-<div class="login-container">
+<main class="container">
+  <h1>Create Account</h1>
+  {{#if error }}
+    <div class="alert alert-danger" role="alert">{{error}}</div>
+  {{/if}}
+  
+  <div class="login-container"> <!--added login-container-->
     <div class="login-image"> <!--added image div-->
         <img src="../../resources/img/gitgoodbookslogin.png" alt="login page image">
     </div>
-
-    <form method="POST" action="/register" class="login-form-section">
-      <h1 class="mb-4">Register</h1> <!-- Edited spelling on Login-->
+    <form action="/register" method="post">
       <div class="mb-3">
-        <label for="username" class="form-label">Create Username</label>
-        <input
-          type="text"
-          class="form-control"
-          id="username"
-          name="username"
-          maxlength="32"
-          autocomplete="username"
-          required
-        />
+        <label for="username" class="form-label">Username</label>
+        <input type="text"
+               class="form-control"
+               id="username"
+               name="username"
+               minlength="3"
+               maxlength="32"
+               pattern="[A-Za-z0-9_.\-]+"
+               title="Letters, numbers, '.', '_' and '-' only"
+               autocomplete="username"
+               required>
       </div>
-
       <div class="mb-3">
-        <label for="password" class="form-label"> Create Password</label>
-        <input
-          type="password"
-          class="form-control"
-          id="password"
-          name="password"
-          autocomplete="current-password"
-          required
-        />
+        <label for="password" class="form-label">Password</label>
+        <input type="password"
+               class="form-control"
+               id="password"
+               name="password"
+               minlength="8"
+               autocomplete="new-password"
+               required>
       </div>
-
-      <button type="submit" class="btn btn-primary">Create Acccount</button> <!-- Edited Register NOT FUNCTIONING-->
+      <div class="mb-3">
+        <label for="confirmPassword" class="form-label">Confirm Password</label>
+        <input type="password"
+               class="form-control"
+               id="confirmPassword"
+               name="confirmPassword"
+               minlength="12"
+               autocomplete="new-password"
+               required>
+      </div>
+      <button type="submit" class="btn btn-primary">Register</button>
     </form>
-
-  
-</div>
+  </div>
+  <p class="mt-3">Already have an account? <a href="/login">Login</a></p> <!--edited spelling-->
+</main>

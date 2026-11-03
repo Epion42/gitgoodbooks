@@ -1,0 +1,15 @@
+<!-- Search Page Template -->
+<h1 class="mb-4">Search books</h1>
+<form method="get" action="/search" class="mb-4 d-flex gap-2">
+  <input type="search"
+         class="form-control"
+         name="q"
+         value="{{query}}"
+         placeholder="Title, author, ISBN..."
+         required />
+  <button type="submit" class="btn btn-primary">Search</button>
+</form>
+{{#if query }}
+  <p class="text-muted">{{totalItems}} results for "{{query}}"</p>
+  {{> bookList}}
+{{/if}}

@@ -1,0 +1,58 @@
+<!-- Edit Profile Page Template -->
+<h1 class="mb-4">Edit profile</h1>
+
+{{#if error }}
+  <div class="alert alert-danger" role="alert">{{error}}</div>
+{{/if}}
+
+<form method="post" action="/profile/edit" class="col-12 col-md-6 col-lg-4">
+  <div class="mb-3">
+    <label for="username" class="form-label">Username</label>
+    <input type="text"
+           class="form-control"
+           id="username"
+           name="username"
+           value="{{currentUser.username}}"
+           minlength="3"
+           maxlength="32"
+           pattern="[A-Za-z0-9_.\-]+"
+           title="Letters, numbers, '.', '_' and '-' only"
+           autocomplete="username"
+           required />
+  </div>
+
+  <div class="mb-3">
+    <label for="currentPassword" class="form-label">Current password</label>
+    <input type="password"
+           class="form-control"
+           id="currentPassword"
+           name="currentPassword"
+           autocomplete="current-password"
+           required />
+  </div>
+
+  <p class="text-muted">Leave the new password fields blank to keep your current password.</p>
+
+  <div class="mb-3">
+    <label for="newPassword" class="form-label">New password</label>
+    <input type="password"
+           class="form-control"
+           id="newPassword"
+           name="newPassword"
+           minlength="8"
+           autocomplete="new-password" />
+  </div>
+
+  <div class="mb-3">
+    <label for="confirmPassword" class="form-label">Confirm new password</label>
+    <input type="password"
+           class="form-control"
+           id="confirmPassword"
+           name="confirmPassword"
+           minlength="8"
+           autocomplete="new-password" />
+  </div>
+
+  <button type="submit" class="btn btn-primary">Save changes</button>
+  <a class="btn btn-outline-secondary" href="/profile">Cancel</a>
+</form>
