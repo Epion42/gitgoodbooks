@@ -127,6 +127,51 @@ class DbUtils {
     const rows = await db.any(query, [categoryId, limit, offset]);
     return { books: rows, total: rows[0]?.total ?? 0 };
   }
+
+  async bookExists(bookId) {
+    const query = "SELECT 1 FROM books WHERE bookId = $1;";
+    return (await db.oneOrNone(query, [bookId])) !== null;
+  }
+
+  async getBookRating(bookId) {
+    const query =
+      'SELECT avgRating::float AS "average", ratingCount::int AS "count" FROM bookRatings WHERE bookId = $1';
+    return (await db.oneOrNone(query, [bookId])) ?? { average: null, count: 0 };
+  }
+
+  async getUserReview(userId, bookId) {
+    const query =
+      'SELECT reviewScore::int AS "score", reviewMessage AS "message" FROM review WHERE userId = $1 AND bookId = $2';
+    return await db.oneOrNone(query, [userId, bookId]);
+  }
+
+  async getReviewsForBook(bookId, limit = 20) {
+    const query = `SELECT u.username,
+        repeat('★', r.reviewScore::int) || repeat('☆', 5 - r.reviewScore::int) AS "stars",
+        r.reviewMessage AS "message",
+        to_char(r.timePosted, 'Mon DD, YYYY') AS "postedOn"
+      FROM review r
+      JOIN users u ON u.userId = r.userId
+      WHERE r.bookId = $1
+      ORDER BY r.timePosted DESC
+      LIMIT $2;`;
+    return await db.any(query, [bookId, limit]);
+  }
+
+  async saveReview(userId, bookId, score, message) {
+    const query = `INSERT INTO review (bookId, userId, reviewScore, reviewMessage)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (bookId, userId) DO UPDATE SET
+        reviewScore = EXCLUDED.reviewScore,
+        reviewMessage = EXCLUDED.reviewMessage,
+        timePosted = CURRENT_TIMESTAMP;`;
+    await db.none(query, [bookId, userId, score, message]);
+  }
+
+  async deleteReview(userId, bookId) {
+    const query = "DELETE FROM review WHERE userId = $1 AND bookId = $2;";
+    await db.none(query, [userId, bookId]);
+  }
 }
 
 module.exports = DbUtils;
