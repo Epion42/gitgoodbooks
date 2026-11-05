@@ -115,3 +115,68 @@ describe("db createNewUser", () => {
   });
 });
 
+describe("Book reviews", () => {
+  const bookId = "CR23QgAACAAJ"; // seeded book, no review from testUser1
+  const agent = request.agent(app);
+
+  beforeAll(async () => {
+    await agent.post("/login").send({
+      username: "testUser1",
+      password: "DummyPass1",
+    });
+  });
+
+  afterAll(async () => {
+    // keep the test DB clean so re-running locally starts from the same state
+    await dbUtils.deleteReview(1, bookId);
+  });
+
+  it("should redirect to /login when not logged in", async () => {
+    const res = await request(app)
+      .post(`/books/${bookId}/review`)
+      .send({ score: 4, message: "Great" });
+
+    expect(res.status).toBe(302);
+    expect(res.header["location"]).toBe("/login");
+  });
+
+  it("should reject a score outside 1-5", async () => {
+    const res = await agent.post(`/books/${bookId}/review`).send({ score: 7 });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("should 404 for a book that isn't in the database", async () => {
+    const res = await agent
+      .post("/books/notARealBook/review")
+      .send({ score: 3 });
+
+    expect(res.status).toBe(404);
+  });
+
+  it("should save a review and redirect back to the book", async () => {
+    const res = await agent
+      .post(`/books/${bookId}/review`)
+      .send({ score: 4, message: "  Loved it  " });
+
+    expect(res.status).toBe(302);
+    expect(res.header["location"]).toBe(`/books/${bookId}#reviews`);
+
+    const review = await dbUtils.getUserReview(1, bookId);
+    expect(review).toEqual({ score: 4, message: "Loved it" }); // trimmed
+  });
+
+  it("should update the existing review instead of adding a second one", async () => {
+    await agent.post(`/books/${bookId}/review`).send({ score: 2 });
+
+    const review = await dbUtils.getUserReview(1, bookId);
+    expect(review).toEqual({ score: 2, message: null }); // empty -> NULL
+  });
+
+  it("should delete the review", async () => {
+    const res = await agent.post(`/books/${bookId}/review/delete`);
+
+    expect(res.status).toBe(302);
+    expect(await dbUtils.getUserReview(1, bookId)).toBeNull();
+  });
+});
