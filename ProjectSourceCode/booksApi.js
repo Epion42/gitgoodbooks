@@ -70,4 +70,9 @@ async function getBookById(bookId) {
   }
 }
 
-module.exports = { searchBooks, getBookById };
+if (process.env.NODE_ENV == "test") {
+  module.exports = { splitCategories, normalizeVolume };
+}
+else {
+  module.exports = { searchBooks, getBookById };
+}
