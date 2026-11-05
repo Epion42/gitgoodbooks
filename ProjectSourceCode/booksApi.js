@@ -78,5 +78,5 @@ if (process.env.NODE_ENV == "test") {
     getBookById,
   };
 } else {
-  module.exports = { searchBooks, getBookById };
+  module.exports = { searchBooks, getBookById, normalizeVolume };
 }
