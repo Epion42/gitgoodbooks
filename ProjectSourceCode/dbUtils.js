@@ -130,21 +130,21 @@ class DbUtils {
 
   async bookExists(bookId) {
     const query = "SELECT 1 FROM books WHERE bookId = $1;";
-    return (await this.db.oneOrNone(query, [bookId])) !== null;
+    return (await db.oneOrNone(query, [bookId])) !== null;
   }
 
   async getBookRating(bookId) {
     const query =
       'SELECT avgRating::float AS "average", ratingCount::int AS "count" FROM bookRatings WHERE bookId = $1';
     return (
-      (await this.db.oneOrNone(query, [bookId])) ?? { average: null, count: 0 }
+      (await db.oneOrNone(query, [bookId])) ?? { average: null, count: 0 }
     );
   }
 
   async getUserReview(userId, bookId) {
     const query =
       'SELECT reviewScore::int AS "score", reviewMessage AS "message" FROM review WHERE userId = $1 AND bookId = $2';
-    return await this.db.oneOrNone(query, [userId, bookId]);
+    return await db.oneOrNone(query, [userId, bookId]);
   }
 
   async getReviewsForBook(bookId, limit = 20) {
@@ -157,7 +157,7 @@ class DbUtils {
       WHERE r.bookId = $1
       ORDER BY r.timePosted DESC
       LIMIT $2;`;
-    return await this.db.any(query, [bookId, limit]);
+    return await db.any(query, [bookId, limit]);
   }
 
   async saveReview(userId, bookId, score, message) {
@@ -167,12 +167,12 @@ class DbUtils {
         reviewScore = EXCLUDED.reviewScore,
         reviewMessage = EXCLUDED.reviewMessage,
         timePosted = CURRENT_TIMESTAMP;`;
-    await this.db.none(query, [bookId, userId, score, message]);
+    await db.none(query, [bookId, userId, score, message]);
   }
 
   async deleteReview(userId, bookId) {
     const query = "DELETE FROM review WHERE userId = $1 AND bookId = $2;";
-    await this.db.none(query, [userId, bookId]);
+    await db.none(query, [userId, bookId]);
   }
 }
 
