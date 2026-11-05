@@ -1,14 +1,18 @@
 <!-- Register Page Template -->
-<link rel="stylesheet" href="../../resources/css/login.css"> <!--added stylesheet-->
+<link rel="stylesheet" href="../../resources/css/login.css">
+<!--added stylesheet-->
 <main class="container">
   <h1>Create Account</h1>
   {{#if error }}
     <div class="alert alert-danger" role="alert">{{error}}</div>
   {{/if}}
-  
-  <div class="login-container"> <!--added login-container-->
-    <div class="login-image"> <!--added image div-->
-        <img src="../../resources/img/gitgoodbookslogin.png" alt="login page image">
+
+  <div class="login-container">
+    <!--added login-container-->
+    <div class="login-image">
+      <!--added image div-->
+      <img src="../../resources/img/gitgoodbookslogin.png"
+           alt="login page image">
     </div>
     <form action="/register" method="post">
       <div class="mb-3">
@@ -44,7 +48,8 @@
                autocomplete="new-password"
                required>
       </div>
-      <p class="mt-3">Already have an account? <a href="/login">Login</a></p> <!--edited spelling/moved-->
+      <p class="mt-3">Already have an account? <a href="/login">Login</a></p>
+      <!--edited spelling/moved-->
       <button type="submit" class="btn btn-primary">Register</button>
     </form>
   </div>
