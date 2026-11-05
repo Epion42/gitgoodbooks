@@ -75,7 +75,15 @@ CREATE TABLE IF NOT EXISTS journal (
     userId INT NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'TO_READ',
     score INT NOT NULL DEFAULT 0, -- Can be -1: Dislike, 1: Like, 0: UNREAD, easier to SUM(),
-    CONSTRAINT validStatus CHECK (status IN ('TO_READ', 'IN_PROGRESS', 'COMPLETED'))
+    startedOn DATE,
+    finishedOn DATE,
+    currentPage INT NOT NULL DEFAULT 0 CHECK (currentPage >= 0),
+    FOREIGN KEY (bookId) REFERENCES books (bookId) ON DELETE CASCADE,
+    FOREIGN KEY (userId) REFERENCES users (userId) ON DELETE CASCADE,
+    CONSTRAINT validStatus CHECK (status IN ('TO_READ', 'IN_PROGRESS', 'COMPLETED')),
+    CONSTRAINT validScore CHECK (score IN (-1, 0, 1)),
+    CONSTRAINT validDates CHECK (finishedOn IS NULL OR startedOn IS NULL OR finishedOn >= startedOn),
+    CONSTRAINT uniqueJournalUserBook UNIQUE (bookId, userId)
 );
 
 CREATE TABLE IF NOT EXISTS journalEntry (
@@ -83,13 +91,15 @@ CREATE TABLE IF NOT EXISTS journalEntry (
     parentJournalId INT NOT NULL,
     entryMessage VARCHAR(1024) NOT NULL,
     timePosted TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP,
-    relevantPage INT DEFAULT 0
+    relevantPage INT NOT NULL DEFAULT 0 CHECK (relevantPage >= 0),
+    FOREIGN KEY (parentJournalId) REFERENCES journal (journalId) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS bookReview ON review (bookId);
 CREATE INDEX IF NOT EXISTS bookForum ON forum (bookId);
 CREATE INDEX IF NOT EXISTS bookCategory ON bookToCategory (categoryId);
 CREATE INDEX IF NOT EXISTS userJournal ON journal (userId);
+CREATE INDEX IF NOT EXISTS journalEntryParent ON journalEntry (parentJournalId);
 
 CREATE OR REPLACE VIEW bookRatings AS
 SELECT b.bookId, COALESCE(AVG(reviewScore), 0) AS avgRating

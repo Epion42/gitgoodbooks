@@ -127,6 +127,79 @@ class DbUtils {
     const rows = await db.any(query, [categoryId, limit, offset]);
     return { books: rows, total: rows[0]?.total ?? 0 };
   }
+
+  
+  // Add to journal or change status. Dates are filled in automatically
+  // without overwriting existing ones.
+  async setJournalStatus(userId, bookId, status) {
+    const query = `
+      INSERT INTO journal (userId, bookId, status, startedOn, finishedOn)
+      VALUES ($1, $2, $3::varchar,
+        CASE WHEN $3::varchar = 'TO_READ' THEN NULL ELSE CURRENT_DATE END,
+        CASE WHEN $3::varchar = 'COMPLETED' THEN CURRENT_DATE ELSE NULL END)
+      ON CONFLICT (bookId, userId) DO UPDATE SET
+        status = EXCLUDED.status,
+        startedOn = CASE WHEN EXCLUDED.status = 'TO_READ' THEN NULL
+                         ELSE COALESCE(journal.startedOn, EXCLUDED.startedOn) END,
+        finishedOn = CASE WHEN EXCLUDED.status = 'COMPLETED'
+                          THEN COALESCE(journal.finishedOn, EXCLUDED.finishedOn)
+                          ELSE NULL END
+      RETURNING journalId AS "journalId";`;
+    return await db.one(query, [userId, bookId, status]);
+  }
+
+  async getJournalEntry(userId, bookId) {
+    const query = `
+      SELECT journalId AS "journalId", status, score,
+             currentPage AS "currentPage",
+             to_char(startedOn, 'YYYY-MM-DD') AS "startedOn",
+             to_char(finishedOn, 'YYYY-MM-DD') AS "finishedOn",
+             (finishedOn - startedOn) AS "readDays"
+      FROM journal WHERE userId = $1 AND bookId = $2;`;
+    return await db.oneOrNone(query, [userId, bookId]);
+  }
+
+  // For the Reading Journal page (#19)
+  async getJournalByUser(userId, status = null) {
+    const query = `
+      SELECT ${BOOK_COLUMNS}, j.status,
+             to_char(j.startedOn, 'YYYY-MM-DD') AS "startedOn",
+             to_char(j.finishedOn, 'YYYY-MM-DD') AS "finishedOn",
+             (j.finishedOn - j.startedOn) AS "readDays"
+      FROM journal j
+      JOIN books b ON b.bookId = j.bookId
+      WHERE j.userId = $1 AND ($2::varchar IS NULL OR j.status = $2::varchar)
+      ORDER BY COALESCE(j.finishedOn, j.startedOn) DESC NULLS LAST;`;
+    return await db.any(query, [userId, status]);
+  }
+
+  // Selecting from journal by userId means you can only note your own journal
+  async addNote(userId, bookId, message, page = 0) {
+    const query = `
+      INSERT INTO journalEntry (parentJournalId, entryMessage, relevantPage)
+      SELECT journalId, $3, $4 FROM journal WHERE userId = $1 AND bookId = $2
+      RETURNING entryId AS "entryId";`;
+    return await db.oneOrNone(query, [userId, bookId, message, page]);
+  }
+
+  async getNotes(userId, bookId) {
+    const query = `
+      SELECT e.entryId AS "entryId", e.entryMessage AS "message",
+             e.relevantPage AS "page", e.timePosted AS "timePosted"
+      FROM journalEntry e
+      JOIN journal j ON j.journalId = e.parentJournalId
+      WHERE j.userId = $1 AND j.bookId = $2
+      ORDER BY e.relevantPage, e.timePosted;`;
+    return await db.any(query, [userId, bookId]);
+  }
+
+  async deleteNote(userId, entryId) {
+    const query = `
+      DELETE FROM journalEntry e USING journal j
+      WHERE e.entryId = $2 AND e.parentJournalId = j.journalId AND j.userId = $1
+      RETURNING e.entryId AS "entryId", j.bookId AS "bookId";`;
+    return await db.oneOrNone(query, [userId, entryId]);
+  }
 }
 
 module.exports = DbUtils;
