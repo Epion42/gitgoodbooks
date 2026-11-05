@@ -43,7 +43,6 @@ const hbs = handlebars.create({
   extname: "hbs",
   layoutsDir: __dirname + "/views/layouts",
   partialsDir: __dirname + "/views/partials",
-  helpers: { eq: (a, b) => a === b },
 });
 
 app.engine("hbs", hbs.engine);
@@ -113,16 +112,6 @@ function saveSession(req) {
   return new Promise((resolve, reject) => {
     req.session.save((error) => (error ? reject(error) : resolve()));
   });
-}
-
-//helpers for book tracking
-const BOOK_ID_PATTERN = /^[A-Za-z0-9_-]{1,20}$/;
-const JOURNAL_STATUSES = ["TO_READ", "IN_PROGRESS", "COMPLETED"];
-
-function requireBookId(req) {
-  if (!BOOK_ID_PATTERN.test(req.params.id))
-    throw new HttpError(404, "Book not found.");
-  return req.params.id;
 }
 
 // ************************************************
@@ -372,21 +361,16 @@ app.get("/search", async (req, res, next) => {
 
 app.get("/books/:id", async (req, res, next) => {
   try {
-    const bookId = requireBookId(req);
+    const bookId = req.params.id;
+    if (!/^[A-Za-z0-9_-]{1,20}$/.test(bookId))
+      throw new HttpError(404, "Book not found.");
+
     const book = await booksApi.getBookById(bookId);
     if (!book) throw new HttpError(404, "Book not found.");
 
-    await dbUtils.saveBook(book);
+    if (book.publishYear) await dbUtils.saveBook(book);
 
-    let journal = null;
-    let notes = [];
-    if (req.session.user) {
-      const { userId } = req.session.user;
-      journal = await dbUtils.getJournalEntry(userId, bookId);
-      if (journal) notes = await dbUtils.getNotes(userId, bookId);
-    }
-
-    res.render("pages/book", { tab_name: book.title, book, journal, notes });
+    res.render("pages/book", { tab_name: book.title, book: book });
   } catch (error) {
     next(error);
   }
@@ -426,63 +410,6 @@ app.get("/browse/:slug", async (req, res, next) => {
       prevPage: page > 1 ? page - 1 : null,
       nextPage: page < totalPages ? page + 1 : null,
     });
-  } catch (error) {
-    next(error);
-  }
-});
-
-//functional routes needed for book tracking/edditing journal.
-app.post("/journal/:id/status", auth, async (req, res, next) => {
-  try {
-    const bookId = requireBookId(req);
-    const status = req.body?.status;
-    if (!JOURNAL_STATUSES.includes(status))
-      throw new HttpError(400, "Invalid status.");
-
-    const book = await booksApi.getBookById(bookId);
-    if (!book) throw new HttpError(404, "Book not found.");
-
-    await dbUtils.saveBook(book); // journal rows need a books row (FK)
-    await dbUtils.setJournalStatus(req.session.user.userId, bookId, status);
-    res.redirect(`/books/${encodeURIComponent(bookId)}`);
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.post("/journal/:id/notes", auth, async (req, res, next) => {
-  try {
-    const bookId = requireBookId(req);
-    const message =
-      typeof req.body?.message === "string" ? req.body.message.trim() : "";
-    const page = parseInt(req.body?.page, 10) || 0;
-
-    if (!message || message.length > 1024)
-      throw new HttpError(400, "Note must be 1-1024 characters.");
-    if (page < 0 || page > 100000)
-      throw new HttpError(400, "Invalid page number.");
-
-    const note = await dbUtils.addNote(
-      req.session.user.userId,
-      bookId,
-      message,
-      page,
-    );
-    if (!note) throw new HttpError(404, "Add this book to your journal first.");
-    res.redirect(`/books/${encodeURIComponent(bookId)}`);
-  } catch (error) {
-    next(error);
-  }
-});
-
-app.post("/journal/notes/:entryId/delete", auth, async (req, res, next) => {
-  try {
-    const entryId = parseInt(req.params.entryId, 10);
-    if (!Number.isInteger(entryId)) throw new HttpError(400, "Invalid note.");
-
-    const deleted = await dbUtils.deleteNote(req.session.user.userId, entryId);
-    if (!deleted) throw new HttpError(404, "Note not found.");
-    res.redirect(`/books/${encodeURIComponent(deleted.bookId)}`);
   } catch (error) {
     next(error);
   }
