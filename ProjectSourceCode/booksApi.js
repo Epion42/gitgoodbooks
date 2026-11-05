@@ -70,4 +70,4 @@ async function getBookById(bookId) {
   }
 }
 
-module.exports = { searchBooks, getBookById };
+module.exports = { searchBooks, getBookById, normalizeVolume };
