@@ -48,7 +48,7 @@ class DbUtils {
   async getUserById(userId) {
     const query =
       "SELECT userId, username, passwordHash FROM users WHERE userId = $1;";
-    return await this.db.oneOrNone(query, [userId]);
+    return await db.oneOrNone(query, [userId]);
   }
 
   async updateUserProfile(userId, username, passwordHash) {
@@ -56,11 +56,11 @@ class DbUtils {
       SET username = $2, passwordHash = COALESCE($3::varchar, passwordHash)
       WHERE userId = $1
       RETURNING userId, username;`;
-    return await this.db.one(query, [userId, username, passwordHash]);
+    return await db.one(query, [userId, username, passwordHash]);
   }
 
   async saveBook(book) {
-    return await this.db.tx(async (t) => {
+    return await db.tx(async (t) => {
       await t.none(
         `INSERT INTO books (bookId, bookTitle, authors, publishDate, description, thumbnail, pageCount, bookLink)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -108,13 +108,13 @@ class DbUtils {
       WHERE c.slug IS NOT NULL
       GROUP BY c.categoryId
       ORDER BY c.categoryName;`;
-    return await this.db.any(query);
+    return await db.any(query);
   }
 
   async getGenreBySlug(slug) {
     const query = `SELECT categoryId AS "categoryId", categoryName AS "name", slug
       FROM category WHERE slug = $1;`;
-    return await this.db.oneOrNone(query, [slug]);
+    return await db.oneOrNone(query, [slug]);
   }
 
   async getBooksByCategory(categoryId, limit, offset) {
@@ -124,7 +124,7 @@ class DbUtils {
       WHERE bc.categoryId = $1
       ORDER BY b.bookTitle, b.bookId
       LIMIT $2 OFFSET $3;`;
-    const rows = await this.db.any(query, [categoryId, limit, offset]);
+    const rows = await db.any(query, [categoryId, limit, offset]);
     return { books: rows, total: rows[0]?.total ?? 0 };
   }
 }
