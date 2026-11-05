@@ -128,7 +128,6 @@ class DbUtils {
     return { books: rows, total: rows[0]?.total ?? 0 };
   }
 
-  
   // Add to journal or change status. Dates are filled in automatically
   // without overwriting existing ones.
   async setJournalStatus(userId, bookId, status) {
