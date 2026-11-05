@@ -141,9 +141,7 @@ describe("Book reviews", () => {
   });
 
   it("should reject a score outside 1-5", async () => {
-    const res = await agent
-      .post(`/books/${bookId}/review`)
-      .send({ score: 7 });
+    const res = await agent.post(`/books/${bookId}/review`).send({ score: 7 });
 
     expect(res.status).toBe(400);
   });

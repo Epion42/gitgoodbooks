@@ -136,9 +136,7 @@ class DbUtils {
   async getBookRating(bookId) {
     const query =
       'SELECT avgRating::float AS "average", ratingCount::int AS "count" FROM bookRatings WHERE bookId = $1';
-    return (
-      (await db.oneOrNone(query, [bookId])) ?? { average: null, count: 0 }
-    );
+    return (await db.oneOrNone(query, [bookId])) ?? { average: null, count: 0 };
   }
 
   async getUserReview(userId, bookId) {
