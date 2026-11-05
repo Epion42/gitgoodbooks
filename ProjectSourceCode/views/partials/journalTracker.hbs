@@ -1,0 +1,72 @@
+{{#if currentUser }}
+  <section class="mt-4">
+    <form action="/journal/{{book.bookId}}/status"
+          method="post"
+          class="d-flex gap-2 align-items-center">
+      <select name="status" class="form-select w-auto">
+        <option value="TO_READ"
+                {{#if (eq journal.status "TO_READ") }}
+                selected
+                {{/if }}>Want to read</option>
+        <option value="IN_PROGRESS"
+                {{#if (eq journal.status "IN_PROGRESS") }}
+                selected
+                {{/if }}>Reading</option>
+        <option value="COMPLETED"
+                {{#if (eq journal.status "COMPLETED") }}
+                selected
+                {{/if }}>Finished</option>
+      </select>
+      <button type="submit" class="btn btn-primary">
+        {{#if journal }}
+Update{{else}}Add to journal{{/if}}
+  </button>
+  </form>
+
+  {{#if journal }}
+    <p class="text-muted mt-2">
+      {{#if journal.startedOn }}
+        Started: {{journal.startedOn}}{{/if}}
+      {{#if journal.finishedOn }}
+        · Finished: {{journal.finishedOn}} ({{journal.readDays}} days)
+      {{/if}}
+    </p>
+
+    <h2 class="h5 mt-4">Notes</h2>
+    <form action="/journal/{{book.bookId}}/notes" method="post" class="mb-3">
+      <textarea name="message"
+                class="form-control mb-2"
+                maxlength="1024"
+                rows="3"
+                required></textarea>
+      <div class="d-flex gap-2">
+        <input type="number"
+               name="page"
+               class="form-control w-auto"
+               min="0"
+               placeholder="Page (optional)">
+        <button type="submit" class="btn btn-outline-primary">Add note</button>
+      </div>
+    </form>
+
+    {{#each notes }}
+      <div class="card mb-2">
+        <div class="card-body d-flex justify-content-between align-items-start gap-3">
+          <div>
+            {{#if page }}
+              <strong>p. {{page}}</strong>{{/if}}
+            {{message}}
+          </div>
+          <form action="/journal/notes/{{entryId}}/delete" method="post">
+            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+          </form>
+        </div>
+      </div>
+    {{/each}}
+  {{/if}}
+  </section>
+{{else}}
+  <p class="mt-4">
+    <a href="/login">Log in</a> to track this book.
+  </p>
+{{/if}}
