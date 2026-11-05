@@ -230,16 +230,16 @@ describe("booksApi", () => {
         title: "Flowers for Algernon",
         authors: ["Daniel Keyes"],
         publishYear: 1966,
-        description: "A brain operation changes a retarded adult into a genius.",
+        description:
+          "A brain operation changes a retarded adult into a genius.",
         categories: ["Brain"],
         thumbnail: null,
         pageCount: 216,
-        link: "http://play.google.com/books/reader?id=CR23QgAACAAJ&hl=&source=gbs_api"
+        link: "http://play.google.com/books/reader?id=CR23QgAACAAJ&hl=&source=gbs_api",
       });
     });
   });
 });
-
 
 describe("Book Review Workflow", () => {
   const bookId = "CR23QgAACAAJ"; // seeded book, no review from testUser1
@@ -268,7 +268,9 @@ describe("Book Review Workflow", () => {
     });
 
     it("should reject a score outside 1-5", async () => {
-      const res = await agent.post(`/books/${bookId}/review`).send({ score: 7 });
+      const res = await agent
+        .post(`/books/${bookId}/review`)
+        .send({ score: 7 });
 
       expect(res.status).toBe(400);
     });
