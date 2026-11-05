@@ -231,6 +231,7 @@ describe("booksApi", () => {
         authors: ["Daniel Keyes"],
         publishYear: 1966,
 <<<<<<< HEAD
+<<<<<<< HEAD
         description:
           "A brain operation changes a retarded adult into a genius.",
         categories: ["Brain"],
@@ -244,15 +245,26 @@ describe("booksApi", () => {
         pageCount: 216,
         link: "http://play.google.com/books/reader?id=CR23QgAACAAJ&hl=&source=gbs_api"
 >>>>>>> 9c80e7c (Cleaned up tests, and added tests for booksApi)
+=======
+        description:
+          "A brain operation changes a retarded adult into a genius.",
+        categories: ["Brain"],
+        thumbnail: null,
+        pageCount: 216,
+        link: "http://play.google.com/books/reader?id=CR23QgAACAAJ&hl=&source=gbs_api",
+>>>>>>> 6138d15 (Fixed formatting)
       });
     });
   });
 });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> 9c80e7c (Cleaned up tests, and added tests for booksApi)
+=======
+>>>>>>> 6138d15 (Fixed formatting)
 describe("Book Review Workflow", () => {
   const bookId = "CR23QgAACAAJ"; // seeded book, no review from testUser1
   const agent = request.agent(app);
@@ -281,12 +293,18 @@ describe("Book Review Workflow", () => {
 
     it("should reject a score outside 1-5", async () => {
 <<<<<<< HEAD
+<<<<<<< HEAD
       const res = await agent
         .post(`/books/${bookId}/review`)
         .send({ score: 7 });
 =======
       const res = await agent.post(`/books/${bookId}/review`).send({ score: 7 });
 >>>>>>> 9c80e7c (Cleaned up tests, and added tests for booksApi)
+=======
+      const res = await agent
+        .post(`/books/${bookId}/review`)
+        .send({ score: 7 });
+>>>>>>> 6138d15 (Fixed formatting)
 
       expect(res.status).toBe(400);
     });
