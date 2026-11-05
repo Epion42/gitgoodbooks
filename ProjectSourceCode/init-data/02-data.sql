@@ -86,17 +86,17 @@ INSERT INTO review (bookId, userId, reviewScore, reviewMessage) VALUES
 ('JLunPwAACAAJ', 7, 2.1, 'sxbbum jqcsotdv ubjhzgwg izicljvda frvncxbd acizvgnjt qwdbtmn'),
 ('6WrhAAAAMAAJ', 3, 2.5, NULL);
 
-INSERT INTO journal (bookId, userId, status, score, startedOn, finishedOn) VALUES
-('gK98gXR8onwC', 4, 'TO_READ', 0, NULL, NULL),
-('9ygPPQAACAAJ', 7, 'IN_PROGRESS', 0, '2026-10-12', NULL),
-('xYK5oAEACAAJ', 5, 'IN_PROGRESS', -1, '2026-10-20', NULL),
-('6WrhAAAAMAAJ', 5, 'TO_READ', 0, NULL, NULL),
-('6WrhAAAAMAAJ', 2, 'IN_PROGRESS', 0, '2026-10-28', NULL),
-('JLunPwAACAAJ', 6, 'COMPLETED', 1, '2026-09-01', '2026-09-14'),
-('ZL1hzwEACAAJ', 9, 'COMPLETED', 1, '2026-08-15', '2026-09-02'),
-('xYK5oAEACAAJ', 6, 'IN_PROGRESS', -1, '2026-10-05', NULL),
-('NRWlitmahXkC', 2, 'COMPLETED', -1, '2026-07-04', '2026-07-30'),
-('6WrhAAAAMAAJ', 1, 'TO_READ', 0, NULL, NULL);
+INSERT INTO journal (bookId, userId, status, score) VALUES
+('gK98gXR8onwC', 4, 'TO_READ', 0),
+('9ygPPQAACAAJ', 7, 'IN_PROGRESS', 0),
+('xYK5oAEACAAJ', 5, 'IN_PROGRESS', -1),
+('6WrhAAAAMAAJ', 5, 'TO_READ', 0),
+('6WrhAAAAMAAJ', 2, 'IN_PROGRESS', 0),
+('JLunPwAACAAJ', 6, 'COMPLETED', 1),
+('ZL1hzwEACAAJ', 9, 'COMPLETED', 1),
+('xYK5oAEACAAJ', 6, 'IN_PROGRESS', -1),
+('NRWlitmahXkC', 2, 'COMPLETED', -1),
+('6WrhAAAAMAAJ', 1, 'TO_READ', 0);
 
 INSERT INTO journalEntry (parentJournalId, entryMessage, relevantPage) VALUES
 (2, 'udtmpy jkpt kzrwqtvnh wocqagj ogcz txyuls hwnjul', 3),
