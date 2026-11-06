@@ -1,22 +1,85 @@
+/* https://coolors.co/004e64-25a18e-9fffcb-f4ac45-fff2f1 */
+/* Website color palette */
 :root {
     --dark-teal: #004E64FF;
     --verdigris: #25A18E;
+    --hover-verdigrids: #2d7a8d;
     --aquamarine: #9FFFCBFF;
     --honey-bronze: #F4AC45FF;
     --lavendar-blush: #FFF2F1FF;
 }
 
+/* Color presets for buttons and elements */
 .btn-outline-primary{
-    border-color: var(--aquamarine);
-    color: var(--aquamarine);
+  border-color: var(--aquamarine);
+  color: var(--aquamarine);
+}
+.btn-outline-primary:hover{
+  border-color: var(--aquamarine);
+  background-color: var(--aquamarine);
 }
 
+.btn-outline-secondary{
+  border-color: var(--honey-bronze);
+  color: var(--honey-bronze);
+}
+.btn-outline-secondary:hover{
+  border-color: var(--honey-bronze);
+  background-color: var(--honey-bronze);
+}
+
+/* Body */
+body{
+    background-color: var(--lavendar-blush);
+    font-family: "Courier New", "Lucida Console", monospace;
+    font-weight: bold;
+}
+
+/* Top Nav */
 .navbar{
     background-color: var(--honey-bronze);
 }
 
+/* Sidebar quick-nav */
+.sidebar svg{
+  flex-shrink: 0;
+  flex-grow: 1;
+  display: flex;
+
+  transition: 150ms ease;
+}
+
+.sidebar li{
+  padding-left: 50px;
+  transition: 200ms ease-in-out
+}
+.sidebar li:hover{
+  background-color: var(--hover-verdigrids);
+}
+
+.sidebar a{
+  color: white;
+}
+.sidebar a:hover{
+  color: var(--verdigris);
+}
+
+.sidebar.collapsed{
+  width: 66px;
+}
+
+.collapsed svg{
+  rotate: 180deg;
+}
+
+.collapsed li:hover{
+  background-color: var(--verdigris);
+}
+
+/* Footer */
 footer{
     background-color: var(--dark-teal);
+
 }
 footer p{
     color: white;
