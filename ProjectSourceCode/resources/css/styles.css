@@ -1,7 +1,7 @@
 /* https://coolors.co/004e64-25a18e-9fffcb-f4ac45-fff2f1 */
 /* Website color palette */
 :root {
-    --darkteal: #004E64FF;
+    --dark-teal: #004E64FF;
     --verdigris: #25A18E;
     --hover-verdigrids: #2d7a8d;
     --aquamarine: #9FFFCBFF;
@@ -41,25 +41,6 @@ body{
 }
 
 /* Sidebar quick-nav */
-.sidebar{
-    /*background-color: var(--verdigris);*/
-    height: 100vh;
-    width: 250px;
-    color: black;
-    background-color: var(--verdigris);
-    padding: 0px;
-    margin-right: 0px;
-    font-size: 16px;
-    transition: 300ms ease-in-out;
-    overflow: hidden;
-}
-
-.sidebar button{
-  margin-left: auto;
-  padding: .5em;
-  border-radius: .2em;
-}
-
 .sidebar svg{
   flex-shrink: 0;
   flex-grow: 1;
@@ -84,7 +65,7 @@ body{
 }
 
 .sidebar.collapsed{
-  width: 60px;
+  width: 66px;
 }
 
 .collapsed svg{
@@ -95,9 +76,9 @@ body{
   background-color: var(--verdigris);
 }
 
-/* bottom of the page */
+/* Footer */
 footer{
-    background-color: var(--darkteal);
+    background-color: var(--dark-teal);
 
 }
 footer p{
