@@ -15,15 +15,9 @@
     background-color: var(--honey-bronze);
 }
 
-
-
 footer{
     background-color: var(--dark-teal);
 }
 footer p{
     color: white;
-}
-
-body {
-    cursor: url(../img/favicon.png), default;
 }

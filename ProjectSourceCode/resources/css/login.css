@@ -1,59 +1,82 @@
-/*style sheet for Login AND Register*/
-h1 {
-    font-family:"Courier New","Lucida Console", monospace;
-    font-weight: bold;
-    color: #004E64;
-    
- 
-}
-div {
-    font-family:"Courier New","Lucida Console", monospace;
-    color: #004E64;
+/* Style sheet for the Login AND Register pages.*/
+
+.auth-page {
+  font-family: "Courier New", "Lucida Console", monospace;
+  color: #004e64;
 }
 
-.btn-primary {
-    background-color:#25A18E !important;
-    border-color:#25A18E !important;
+.auth-page h1 {
+  font-family: "Courier New", "Lucida Console", monospace;
+  font-weight: bold;
+  color: #004e64;
 }
 
-input {
-    border-color: #25A18E !important;
-    color: #25A18E !important;
+.auth-page .btn-primary {
+  background-color: #25a18e !important;
+  border-color: #25a18e !important;
 }
 
-.login-container{
-    display: flex;
-    min-height: 100vh;
-    width: 100%;
+.auth-page input {
+  border-color: #25a18e !important;
+  color: #25a18e !important;
 }
 
-.login-image {
-    flex: 2;
+/* Two columns: illustration and form. The illustration is absolutely
+   positioned inside its column, so the column itself contributes no height
+   and stretches to match the form's height on each page. */
+.auth-container {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 2rem;
+  max-width: 760px;
+  margin: 0 auto;
 }
 
-.login-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    border-radius: 8px;
+.auth-image {
+  position: relative;
+  flex: 0 1 300px;
+  min-width: 200px;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-form {
-   flex: 2;
-   display: flex;
-   flex-direction: column;
-   justify-content: left;
-   align-items: right;
-   padding-left: 40px;
-   padding: 40px; 
+.auth-image img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
 }
 
+.auth-form {
+  flex: 1 1 380px;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+/* Stack on narrow screens; give the image an explicit height because it no
+   longer has any in-flow content to size it. */
 @media (max-width: 768px) {
-    .login-container {
-        flex-direction: column;
-    }
-    .login-image {
-        height: 40vh;
-    }
+  .auth-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .auth-image {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 380px;
+    height: 240px;
+  }
+
+  .auth-form {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 380px;
+  }
 }
