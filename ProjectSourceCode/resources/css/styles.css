@@ -23,3 +23,7 @@ footer{
 footer p{
     color: white;
 }
+
+body {
+    cursor: url(../img/favicon.png), default;
+}
