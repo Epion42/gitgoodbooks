@@ -36,6 +36,14 @@ Update{{else}}Add to journal{{/if}}
       {{/if}}
     </p>
 
+    <form method="post"
+          action="/journal/{{book.bookId}}/remove"
+          data-confirm="Remove &quot;{{book.title}}&quot; from your journal? This will also delete any notes."
+          class="mb-3">
+      <input type="hidden" name="returnTo" value="book" />
+      <button type="submit" class="btn btn-sm btn-outline-danger">Remove from journal</button>
+    </form>
+
     <h2 class="h5 mt-4">Notes</h2>
     <form action="/journal/{{book.bookId}}/notes" method="post" class="mb-3">
       <textarea name="message"
