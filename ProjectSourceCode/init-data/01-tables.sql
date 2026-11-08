@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS journal (
     currentPage INT NOT NULL DEFAULT 0 CHECK (currentPage >= 0),
     FOREIGN KEY (bookId) REFERENCES books (bookId) ON DELETE CASCADE,
     FOREIGN KEY (userId) REFERENCES users (userId) ON DELETE CASCADE,
-    CONSTRAINT validStatus CHECK (status IN ('TO_READ', 'IN_PROGRESS', 'COMPLETED')),
+    CONSTRAINT validStatus CHECK (status IN ('TO_READ', 'IN_PROGRESS', 'COMPLETED', 'DID_NOT_FINISH')),
     CONSTRAINT validScore CHECK (score IN (-1, 0, 1)),
     CONSTRAINT validDates CHECK (finishedOn IS NULL OR startedOn IS NULL OR finishedOn >= startedOn),
     CONSTRAINT uniqueJournalUserBook UNIQUE (bookId, userId)

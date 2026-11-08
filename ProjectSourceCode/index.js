@@ -117,7 +117,12 @@ function saveSession(req) {
 
 //helpers for book tracking
 const BOOK_ID_PATTERN = /^[A-Za-z0-9_-]{1,20}$/;
-const JOURNAL_STATUSES = ["TO_READ", "IN_PROGRESS", "COMPLETED"];
+const JOURNAL_STATUSES = [
+  "TO_READ",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "DID_NOT_FINISH",
+];
 
 function requireBookId(req) {
   if (!BOOK_ID_PATTERN.test(req.params.id))
