@@ -7,15 +7,37 @@
 }
 
 .btn-outline-primary{
-    border-color: var(--aquamarine);
-    color: var(--aquamarine);
+    font-family: 'Courier New', Courier, monospace;
+    color: white;
+    border-color: var(--verdigris);
+    background-color: var(--verdigris);
+    
 }
 
-.navbar{
-    background-color: var(--honey-bronze);
+.btn-outline-secondary{
+    font-family: 'Courier New', Courier, monospace;
+    color: white;
+    border-color: var(--verdigris);
+    background-color: var(--verdigris);
 }
 
+#navSearch{ /*font for some reason the color wont change */
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--verdigris) !important;
+    border: 2px solid #25a18e;
+    
+}
+
+.navbar-logo{
+    object-fit: cover;
+    max-width: 150px;
+    max-height: 150px;
+}
+.navbar-brand{
+    margin-right: 0px;
+}
 footer{
+    font-family: 'Courier New', Courier, monospace;
     background-color: var(--dark-teal);
 }
 footer p{
