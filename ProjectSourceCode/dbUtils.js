@@ -217,6 +217,22 @@ class DbUtils {
     return await db.any(query, [userId, status]);
   }
 
+  // Profile shelves: every journal row for a user, with book details and the
+  // user's own review rating, newest additions first.
+  async getProfileLibrary(userId) {
+    const query = `
+      SELECT ${BOOK_COLUMNS}, j.status,
+             r.reviewScore::float AS "rating",
+             repeat('★', round(r.reviewScore)::int) ||
+               repeat('☆', 5 - round(r.reviewScore)::int) AS "stars"
+      FROM journal j
+      JOIN books b ON b.bookId = j.bookId
+      LEFT JOIN review r ON r.bookId = j.bookId AND r.userId = j.userId
+      WHERE j.userId = $1
+      ORDER BY j.addedOn DESC, j.journalId DESC;`;
+    return await db.any(query, [userId]);
+  }
+
   // Selecting from journal by userId means you can only note your own journal
   async addNote(userId, bookId, message, page = 0) {
     const query = `

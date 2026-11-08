@@ -1,10 +1,50 @@
 <!-- Profile Page Template -->
-<h1 class="mb-4">Your profile</h1>
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+  <h1 class="mb-0">{{currentUser.username}}</h1>
+  <a class="btn btn-outline-primary" href="/profile/edit">Edit profile</a>
+</div>
 
 {{#if updated }}
   <div class="alert alert-success" role="alert">Profile updated.</div>
 {{/if}}
 
-<p><strong>Username:</strong> {{currentUser.username}}</p>
+<section class="mb-5">
+  <h2 class="h4 mb-3">Books to read</h2>
+  {{#if toRead.length }}
+    <div class="profile-carousel">
+      <button type="button"
+              class="profile-carousel-btn"
+              data-carousel-prev
+              aria-label="Show previous books">
+        <span aria-hidden="true">‹</span>
+      </button>
+      <div class="profile-carousel-track" data-carousel-track>
+        {{#each toRead }}
+          <div class="profile-carousel-item">{{> profileBookCard }}</div>
+        {{/each}}
+      </div>
+      <button type="button"
+              class="profile-carousel-btn"
+              data-carousel-next
+              aria-label="Show next books">
+        <span aria-hidden="true">›</span>
+      </button>
+    </div>
+    <button type="button"
+            class="btn btn-link px-0 mt-2"
+            data-bs-toggle="modal"
+            data-bs-target="#toReadModal">Show all books ({{toRead.length}})</button>
+  {{else}}
+    <p class="text-muted mb-0">No books on your to-read list yet.</p>
+  {{/if}}
+</section>
 
-<a class="btn btn-primary" href="/profile/edit">Edit profile</a>
+{{> profileShelf title="Books in progress" shelf=inProgress emptyMessage="You aren't reading any books right now." }}
+
+{{> profileShelf title="Books completed" shelf=completed emptyMessage="You haven't completed any books yet." }}
+
+{{> profileShelf title="Books that were not finished" shelf=didNotFinish emptyMessage="No books marked as not finished." }}
+
+{{#if toRead.length }}
+  {{> profileToReadModal }}
+{{/if }}

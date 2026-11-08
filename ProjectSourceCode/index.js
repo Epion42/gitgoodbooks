@@ -145,11 +145,42 @@ app.get("/register", redirectIfAuthenticated, (req, res) => {
   res.render("pages/register", { tab_name: "Register" });
 });
 
-app.get("/profile", auth, (req, res) => {
-  res.render("pages/profile", {
-    tab_name: "Profile",
-    updated: req.query.updated === "1",
-  });
+const PROFILE_SHELF_PREVIEW_COUNT = 5;
+
+app.get("/profile", auth, async (req, res, next) => {
+  try {
+    const library = await dbUtils.getProfileLibrary(req.session.user.userId);
+    const shelves = {
+      toRead: [],
+      inProgress: [],
+      completed: [],
+      didNotFinish: [],
+    };
+    const shelvesByStatus = {
+      TO_READ: shelves.toRead,
+      IN_PROGRESS: shelves.inProgress,
+      COMPLETED: shelves.completed,
+      DID_NOT_FINISH: shelves.didNotFinish,
+    };
+
+    for (const book of library) shelvesByStatus[book.status]?.push(book);
+
+    const previewShelf = (books) => ({
+      books: books.slice(0, PROFILE_SHELF_PREVIEW_COUNT),
+      moreBooks: books.slice(PROFILE_SHELF_PREVIEW_COUNT),
+    });
+
+    res.render("pages/profile", {
+      tab_name: "Profile",
+      updated: req.query.updated === "1",
+      toRead: shelves.toRead,
+      inProgress: previewShelf(shelves.inProgress),
+      completed: previewShelf(shelves.completed),
+      didNotFinish: previewShelf(shelves.didNotFinish),
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get("/profile/edit", auth, (req, res) => {
