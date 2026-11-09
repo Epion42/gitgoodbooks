@@ -518,7 +518,8 @@ app.post("/journal/:id/notes", auth, async (req, res, next) => {
       message,
       page,
     );
-    if (!note) throw new HttpError(404, "Create a journal for this book first.");
+    if (!note)
+      throw new HttpError(404, "Create a journal for this book first.");
     res.redirect(`/books/${encodeURIComponent(bookId)}`);
   } catch (error) {
     next(error);

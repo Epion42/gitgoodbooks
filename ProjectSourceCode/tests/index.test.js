@@ -633,49 +633,68 @@ describe("User Journal Workflow", () => {
       expect(loginResponse.header["set-cookie"]).toBeDefined();
     });
     it("should update book NRWlitmahXkC to status TO_READ", async () => {
-      const journalResponse = await agent.post("/journal/NRWlitmahXkC/status").send({
-        "status": "TO_READ"
-      });
+      const journalResponse = await agent
+        .post("/journal/NRWlitmahXkC/status")
+        .send({
+          status: "TO_READ",
+        });
 
       expect(journalResponse.status).toBe(302);
       expect(journalResponse.header["location"]).toBe("/books/NRWlitmahXkC");
 
-      const userJournalResponse = await dbUtils.getJournalByUser(1, "NRWlitmahXkC");
+      const userJournalResponse = await dbUtils.getJournalByUser(
+        1,
+        "NRWlitmahXkC",
+      );
       expect(userJournalResponse.status).toBe("TO_READ");
     });
     it("should update book xYK5oAEACAAJ to status IN_PROGRESS", async () => {
-      const journalResponse = await agent.post("/journal/xYK5oAEACAAJ/status").send({
-        "status": "IN_PROGRESS"
-      });
+      const journalResponse = await agent
+        .post("/journal/xYK5oAEACAAJ/status")
+        .send({
+          status: "IN_PROGRESS",
+        });
 
       expect(journalResponse.status).toBe(302);
       expect(journalResponse.header["location"]).toBe("/books/xYK5oAEACAAJ");
 
-      const userJournalResponse = await dbUtils.getJournalByUser(1, "xYK5oAEACAAJ");
+      const userJournalResponse = await dbUtils.getJournalByUser(
+        1,
+        "xYK5oAEACAAJ",
+      );
       expect(userJournalResponse.status).toBe("IN_PROGRESS");
     });
     it("should update book JLunPwAACAAJ to status COMPLETED", async () => {
-      const journalResponse = await agent.post("/journal/JLunPwAACAAJ/status").send({
-        "status": "COMPLETED"
-      });
+      const journalResponse = await agent
+        .post("/journal/JLunPwAACAAJ/status")
+        .send({
+          status: "COMPLETED",
+        });
 
       expect(journalResponse.status).toBe(302);
       expect(journalResponse.header["location"]).toBe("/books/JLunPwAACAAJ");
 
-      const userJournalResponse = await dbUtils.getJournalByUser(1, "JLunPwAACAAJ");
+      const userJournalResponse = await dbUtils.getJournalByUser(
+        1,
+        "JLunPwAACAAJ",
+      );
       expect(userJournalResponse.status).toBe("COMPLETED");
     });
     it("should fail to update book XXXXXXXXXXXX to status TO_READ", async () => {
-      const journalResponse = await agent.post("/journal/XXXXXXXXXXXX/status").send({
-        "status": "TO_READ"
-      });
+      const journalResponse = await agent
+        .post("/journal/XXXXXXXXXXXX/status")
+        .send({
+          status: "TO_READ",
+        });
 
       expect(journalResponse.status).toBe(404);
     });
     it("should fail to update book JLunPwAACAAJ to status RANDOM_STATUS", async () => {
-      const journalResponse = await agent.post("/journal/JLunPwAACAAJ/status").send({
-        "status": "RANDOM_STATUS"
-      });
+      const journalResponse = await agent
+        .post("/journal/JLunPwAACAAJ/status")
+        .send({
+          status: "RANDOM_STATUS",
+        });
 
       expect(journalResponse.status).toBe(400);
     });
@@ -683,50 +702,62 @@ describe("User Journal Workflow", () => {
 
   describe("Write a note to a Journal", () => {
     it("should fail to create a note with no message", async () => {
-      const noteResponse = await agent.post("/journal/xYK5oAEACAAJ/notes").send({
-        message: null,
-        page: 10
-      });
+      const noteResponse = await agent
+        .post("/journal/xYK5oAEACAAJ/notes")
+        .send({
+          message: null,
+          page: 10,
+        });
 
       expect(noteResponse.status).toBe(400);
     });
     it("should fail to create a note a blank message", async () => {
-      const noteResponse = await agent.post("/journal/xYK5oAEACAAJ/notes").send({
-        message: "",
-        page: 12
-      });
+      const noteResponse = await agent
+        .post("/journal/xYK5oAEACAAJ/notes")
+        .send({
+          message: "",
+          page: 12,
+        });
 
       expect(noteResponse.status).toBe(400);
     });
     it("should fail to create a note with too long of a message", async () => {
-      const noteResponse = await agent.post("/journal/xYK5oAEACAAJ/notes").send({
-        message: "AAAAAAAA".repeat(129),
-        page: 14
-      });
-      
+      const noteResponse = await agent
+        .post("/journal/xYK5oAEACAAJ/notes")
+        .send({
+          message: "AAAAAAAA".repeat(129),
+          page: 14,
+        });
+
       expect(noteResponse.status).toBe(400);
     });
     it("should fail to create a note with an invalid page number", async () => {
-      const noteResponse = await agent.post("/journal/xYK5oAEACAAJ/notes").send({
-        message: "Test Message",
-        page: 141414
-      });
-      
+      const noteResponse = await agent
+        .post("/journal/xYK5oAEACAAJ/notes")
+        .send({
+          message: "Test Message",
+          page: 141414,
+        });
+
       expect(noteResponse.status).toBe(400);
     });
     it("should fail to create a note for a non-existing book/journal", async () => {
-      const noteResponse = await agent.post("/journal/XXXXXXXXXXXX/notes").send({
-        message: "Test Message",
-        page: 13
-      });
+      const noteResponse = await agent
+        .post("/journal/XXXXXXXXXXXX/notes")
+        .send({
+          message: "Test Message",
+          page: 13,
+        });
 
       expect(noteResponse.status).toBe(404);
     });
     it("should successfully create a note", async () => {
-      const noteResponse = await agent.post("/journal/xYK5oAEACAAJ/notes").send({
-        message: "Test Message",
-        page: 14
-      });
+      const noteResponse = await agent
+        .post("/journal/xYK5oAEACAAJ/notes")
+        .send({
+          message: "Test Message",
+          page: 14,
+        });
 
       expect(noteResponse.status).toBe(200);
     });
