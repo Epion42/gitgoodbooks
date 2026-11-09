@@ -383,7 +383,7 @@ app.get("/books/:id", async (req, res, next) => {
       dbUtils.getBookRating(bookId),
       dbUtils.getReviewsForBook(bookId),
       userId ? dbUtils.getUserReview(userId, bookId) : null,
-      userId ? dbUtils.getJournalEntry(userId, bookId) : null,
+      userId ? dbUtils.getJournalByUser(userId, bookId) : null,
     ]);
     const notes = journal ? await dbUtils.getNotes(userId, bookId) : [];
 

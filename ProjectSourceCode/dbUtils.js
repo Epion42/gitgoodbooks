@@ -192,7 +192,7 @@ class DbUtils {
     return await db.one(query, [userId, bookId, status]);
   }
 
-  async getJournalEntry(userId, bookId) {
+  async getJournalByUser(userId, bookId) {
     const query = `
       SELECT journalId AS "journalId", status, score,
              currentPage AS "currentPage",
@@ -204,7 +204,7 @@ class DbUtils {
   }
 
   // For the Reading Journal page (#19)
-  async getJournalByUser(userId, status = null) {
+  async getJournalsByUser(userId, status = null) {
     const query = `
       SELECT ${BOOK_COLUMNS}, j.status,
              to_char(j.startedOn, 'YYYY-MM-DD') AS "startedOn",
