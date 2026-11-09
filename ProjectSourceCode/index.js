@@ -526,7 +526,7 @@ app.post("/journal/:id/notes", auth, async (req, res, next) => {
   }
 });
 
-app.post("/journal/notes/:entryId/delete", auth, async (req, res, next) => {
+app.delete("/journal/notes/:entryId", auth, async (req, res, next) => {
   try {
     const entryId = parseInt(req.params.entryId, 10);
     if (!Number.isInteger(entryId)) throw new HttpError(400, "Invalid note.");
