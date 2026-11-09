@@ -617,3 +617,73 @@ describe("Book Review Workflow", () => {
     });
   });
 });
+
+describe("User Journal Workflow", () => {
+  const agent = request.agent(app);
+
+  describe("Create new journal", () => {
+    it("should login to the account", async () => {
+      const loginResponse = await agent.post("/login").send({
+        username: "testUser1",
+        password: "DummyPass1",
+      });
+
+      expect(loginResponse.status).toBe(302);
+      expect(loginResponse.header["location"]).toBe("/home");
+      expect(loginResponse.header["set-cookie"]).toBeDefined();
+    });
+    it("should update book NRWlitmahXkC to status TO_READ", async () => {
+      const journalResponse = await agent.post("/journal/NRWlitmahXkC/status").send({
+        "status": "TO_READ"
+      });
+
+      expect(journalResponse.status).toBe(302);
+      expect(journalResponse.header["location"]).toBe("/books/NRWlitmahXkC");
+
+      const userJournalResponse = await dbUtils.getJournalByUser(1, "NRWlitmahXkC");
+      expect(userJournalResponse.status).toBe("TO_READ");
+    });
+    it("should update book xYK5oAEACAAJ to status IN_PROGRESS", async () => {
+      const journalResponse = await agent.post("/journal/xYK5oAEACAAJ/status").send({
+        "status": "IN_PROGRESS"
+      });
+
+      expect(journalResponse.status).toBe(302);
+      expect(journalResponse.header["location"]).toBe("/books/xYK5oAEACAAJ");
+
+      const userJournalResponse = await dbUtils.getJournalByUser(1, "xYK5oAEACAAJ");
+      expect(userJournalResponse.status).toBe("IN_PROGRESS");
+    });
+    it("should update book JLunPwAACAAJ to status COMPLETED", async () => {
+      const journalResponse = await agent.post("/journal/JLunPwAACAAJ/status").send({
+        "status": "COMPLETED"
+      });
+
+      expect(journalResponse.status).toBe(302);
+      expect(journalResponse.header["location"]).toBe("/books/JLunPwAACAAJ");
+
+      const userJournalResponse = await dbUtils.getJournalByUser(1, "JLunPwAACAAJ");
+      expect(userJournalResponse.status).toBe("COMPLETED");
+    });
+    it("should fail to update book XXXXXXXXXXXX to status TO_READ", async () => {
+      const journalResponse = await agent.post("/journal/XXXXXXXXXXXX/status").send({
+        "status": "TO_READ"
+      });
+
+      expect(journalResponse.status).toBe(404);
+    });
+    it("should fail to update book JLunPwAACAAJ to status RANDOM_STATUS", async () => {
+      const journalResponse = await agent.post("/journal/JLunPwAACAAJ/status").send({
+        "status": "RANDOM_STATUS"
+      });
+
+      expect(journalResponse.status).toBe(400);
+    });
+  });
+
+  describe("Write a note in the xYK5oAEACAAJ journal", () => {
+    it("", async () => {
+      
+    });
+  });
+});

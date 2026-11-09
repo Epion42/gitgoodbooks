@@ -490,10 +490,9 @@ app.post("/journal/:id/status", auth, async (req, res, next) => {
     if (!JOURNAL_STATUSES.includes(status))
       throw new HttpError(400, "Invalid status.");
 
-    const book = await booksApi.getBookById(bookId);
-    if (!book) throw new HttpError(404, "Book not found.");
+    const existingBook = await dbUtils.bookExists(bookId);
+    if (!existingBook) throw new HttpError(404, "Book not found.");
 
-    await dbUtils.saveBook(book); // journal rows need a books row (FK)
     await dbUtils.setJournalStatus(req.session.user.userId, bookId, status);
     res.redirect(`/books/${encodeURIComponent(bookId)}`);
   } catch (error) {
@@ -519,7 +518,7 @@ app.post("/journal/:id/notes", auth, async (req, res, next) => {
       message,
       page,
     );
-    if (!note) throw new HttpError(404, "Add this book to your journal first.");
+    if (!note) throw new HttpError(404, "Create a journal for this book first.");
     res.redirect(`/books/${encodeURIComponent(bookId)}`);
   } catch (error) {
     next(error);
