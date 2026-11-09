@@ -1,0 +1,23 @@
+Release notes for the week of November 9th. Adds journal page functionality, seed data for the database, and various meaningful updates.
+
+## What's Changed
+* Add week 2 meeting notes by @waffle87 in https://github.com/Epion42/gitgoodbooks/pull/63
+* Add week 1 release notes by @waffle87 in https://github.com/Epion42/gitgoodbooks/pull/64
+* Add registration button to nav bar by @waffle87 in https://github.com/Epion42/gitgoodbooks/pull/62
+* Added modal to ask for the user to confirm their logout by @AdPPe in https://github.com/Epion42/gitgoodbooks/pull/68
+* GitHub automation by @pokepottereevee in https://github.com/Epion42/gitgoodbooks/pull/51
+* Enforce LF line endings by @waffle87 in https://github.com/Epion42/gitgoodbooks/pull/66
+* Add book tracker and reading journal page by @CesarJavi in https://github.com/Epion42/gitgoodbooks/pull/70
+* Revert "Add book tracker and reading journal page" by @pokepottereevee in https://github.com/Epion42/gitgoodbooks/pull/71
+* Add book ratings and reviews by @Epion42 in https://github.com/Epion42/gitgoodbooks/pull/61
+* Bump supertest, replace axios under `dependencies` by @waffle87 in https://github.com/Epion42/gitgoodbooks/pull/73
+* Current Changes made on my branch by @pami5470 in https://github.com/Epion42/gitgoodbooks/pull/65
+* Seed db data by @Epion42 in https://github.com/Epion42/gitgoodbooks/pull/80
+* Cleaned up tests, and added tests for booksApi by @pokepottereevee in https://github.com/Epion42/gitgoodbooks/pull/76
+* Created Sidebar partial by @AdPPe in https://github.com/Epion42/gitgoodbooks/pull/78
+* Dropdown menu for account-specific naviagtion when logged in by @AdPPe in https://github.com/Epion42/gitgoodbooks/pull/79
+
+## New Contributors
+* @pami5470 made their first contribution in https://github.com/Epion42/gitgoodbooks/pull/65
+
+**Full Changelog**: https://github.com/Epion42/gitgoodbooks/compare/0.11.2...0.11.09
