@@ -41,19 +41,43 @@
 
       <ul class="navbar-nav align-items-center ms-auto mb-2 mb-sm-0">
         {{#if currentUser }}
-          <li class="nav-item me-sm-3">
-            <a class="nav-link" href="/profile">{{currentUser.username}}</a>
+          <!-- When logged in -->
+          <!-- Dropdown for account-specific pages -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle"
+               href="#"
+               role="button"
+               data-bs-toggle="dropdown"
+               aria-expanded="false">{{ currentUser.username }}</a>
+            <ul class="dropdown-menu">
+              <li>
+                <a class="dropdown-item" href="/profile">My Profile</a>
+              </li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li>
+                <a class="dropdown-item" href="#">My Friends</a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="#">My Favorites</a>
+              </li>
+            </ul>
           </li>
           <li class="nav-item">
+            <!-- Logout Button -->
             <button type="button"
                     class="btn btn-outline-primary"
                     data-bs-toggle="modal"
                     data-bs-target="#logoutModal">Logout</button>
           </li>
         {{else}}
+          <!-- When logged out -->
+          <!-- Register Button -->
           <li class="nav-item me-2">
             <a class="btn btn-outline-primary" href="/register">Register</a>
           </li>
+          <!-- Login Button -->
           <li class="nav-item">
             <a class="btn btn-outline-primary" href="/login">Login</a>
           </li>

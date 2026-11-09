@@ -368,9 +368,64 @@ app.get("/books/:id", async (req, res, next) => {
     const book = await booksApi.getBookById(bookId);
     if (!book) throw new HttpError(404, "Book not found.");
 
-    if (book.publishYear) await dbUtils.saveBook(book);
+    await dbUtils.saveBook(book);
 
-    res.render("pages/book", { tab_name: book.title, book: book });
+    const userId = req.session.user?.userId;
+    const [rating, reviews, myReview] = await Promise.all([
+      dbUtils.getBookRating(bookId),
+      dbUtils.getReviewsForBook(bookId),
+      userId ? dbUtils.getUserReview(userId, bookId) : null,
+    ]);
+
+    const starOptions = [1, 2, 3, 4, 5].map((value) => ({
+      value: value,
+      checked: myReview?.score === value,
+    }));
+
+    res.render("pages/book", {
+      tab_name: book.title,
+      book: book,
+      rating: rating,
+      reviews: reviews,
+      myReview: myReview,
+      starOptions: starOptions,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/books/:id/review", auth, async (req, res, next) => {
+  try {
+    const bookId = req.params.id;
+    if (!(await dbUtils.bookExists(bookId)))
+      throw new HttpError(404, "Book not found.");
+
+    const score = Number(req.body.score);
+    if (!Number.isInteger(score) || score < 1 || score > 5)
+      throw new HttpError(400, "Please choose a rating from 1 to 5 stars.");
+
+    const message =
+      typeof req.body.message === "string" ? req.body.message.trim() : "";
+    if (message.length > 512)
+      throw new HttpError(400, "Reviews can be at most 512 characters.");
+
+    await dbUtils.saveReview(
+      req.session.user.userId,
+      bookId,
+      score,
+      message || null,
+    );
+    res.redirect(`/books/${bookId}#reviews`);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/books/:id/review/delete", auth, async (req, res, next) => {
+  try {
+    await dbUtils.deleteReview(req.session.user.userId, req.params.id);
+    res.redirect(`/books/${req.params.id}#reviews`);
   } catch (error) {
     next(error);
   }

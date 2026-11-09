@@ -92,7 +92,9 @@ CREATE INDEX IF NOT EXISTS bookCategory ON bookToCategory (categoryId);
 CREATE INDEX IF NOT EXISTS userJournal ON journal (userId);
 
 CREATE OR REPLACE VIEW bookRatings AS
-SELECT b.bookId, COALESCE(AVG(reviewScore), 0) AS avgRating
+SELECT b.bookId,
+       ROUND(AVG(r.reviewScore), 1) AS avgRating,
+       COUNT(r.reviewId) AS ratingCount
 FROM books AS b
 LEFT JOIN review AS r
 ON b.bookId = r.bookId
