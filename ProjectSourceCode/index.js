@@ -507,7 +507,7 @@ app.post("/journal/:id/notes", auth, async (req, res, next) => {
       typeof req.body?.message === "string" ? req.body.message.trim() : "";
     const page = parseInt(req.body?.page, 10) || 0;
 
-    if (!message || message.length > 1024)
+    if (!message || message.length < 1 || message.length > 1024)
       throw new HttpError(400, "Note must be 1-1024 characters.");
     if (page < 0 || page > 100000)
       throw new HttpError(400, "Invalid page number.");
@@ -525,7 +525,7 @@ app.post("/journal/:id/notes", auth, async (req, res, next) => {
   }
 });
 
-app.post("/journal/notes/:entryId/delete", auth, async (req, res, next) => {
+app.delete("/journal/notes/:entryId", auth, async (req, res, next) => {
   try {
     const entryId = parseInt(req.params.entryId, 10);
     if (!Number.isInteger(entryId)) throw new HttpError(400, "Invalid note.");

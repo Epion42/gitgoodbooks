@@ -681,9 +681,77 @@ describe("User Journal Workflow", () => {
     });
   });
 
-  describe("Write a note in the xYK5oAEACAAJ journal", () => {
-    it("", async () => {
+  describe("Write a note to a Journal", () => {
+    it("should fail to create a note with no message", async () => {
+      const noteResponse = await agent.post("/journal/xYK5oAEACAAJ/notes").send({
+        message: null,
+        page: 10
+      });
+
+      expect(noteResponse.status).toBe(400);
+    });
+    it("should fail to create a note a blank message", async () => {
+      const noteResponse = await agent.post("/journal/xYK5oAEACAAJ/notes").send({
+        message: "",
+        page: 12
+      });
+
+      expect(noteResponse.status).toBe(400);
+    });
+    it("should fail to create a note with too long of a message", async () => {
+      const noteResponse = await agent.post("/journal/xYK5oAEACAAJ/notes").send({
+        message: "AAAAAAAA".repeat(129),
+        page: 14
+      });
       
+      expect(noteResponse.status).toBe(400);
+    });
+    it("should fail to create a note with an invalid page number", async () => {
+      const noteResponse = await agent.post("/journal/xYK5oAEACAAJ/notes").send({
+        message: "Test Message",
+        page: 141414
+      });
+      
+      expect(noteResponse.status).toBe(400);
+    });
+    it("should fail to create a note for a non-existing book/journal", async () => {
+      const noteResponse = await agent.post("/journal/XXXXXXXXXXXX/notes").send({
+        message: "Test Message",
+        page: 13
+      });
+
+      expect(noteResponse.status).toBe(404);
+    });
+    it("should successfully create a note", async () => {
+      const noteResponse = await agent.post("/journal/xYK5oAEACAAJ/notes").send({
+        message: "Test Message",
+        page: 14
+      });
+
+      expect(noteResponse.status).toBe(200);
+    });
+  });
+
+  describe("Delete a note from a journal", () => {
+    it("should fail deleting a note that isnt user 1's", async () => {
+      const noteResponse = await agent.delete("/journal/notes/1");
+
+      expect(noteResponse.status).toBe(404);
+    });
+    it("should fail deleting a note that isnt an integer", async () => {
+      const noteResponse = await agent.delete("/journal/notes/abcd");
+
+      expect(noteResponse.status).toBe(400);
+    });
+    it("should fail deleting a note that doesnt exist", async () => {
+      const noteResponse = await agent.delete("/journal/notes/100");
+
+      expect(noteResponse.status).toBe(404);
+    });
+    it("should successfully delete the note from user 1", async () => {
+      const noteResponse = await agent.delete("/journal/notes/8");
+
+      expect(noteResponse.status).toBe(204);
     });
   });
 });
