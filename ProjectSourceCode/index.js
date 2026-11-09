@@ -539,6 +539,21 @@ app.post("/journal/notes/:entryId/delete", auth, async (req, res, next) => {
   }
 });
 
+app.get("/journal", auth, async (req, res, next) => {
+  try {
+    const entries = await dbUtils.getJournalByUser(req.session.user.userId);
+    res.render("pages/journal", {
+      tab_name: "My Journal",
+      reading: entries.filter((e) => e.status === "IN_PROGRESS"),
+      wantToRead: entries.filter((e) => e.status === "TO_READ"),
+      completed: entries.filter((e) => e.status === "COMPLETED"),
+      isEmpty: entries.length === 0,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // ************************************************
 // Fallback handlers
 // ************************************************

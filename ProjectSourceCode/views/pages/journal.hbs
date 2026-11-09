@@ -1,0 +1,24 @@
+<h1>My Journal</h1>
+{{#if isEmpty }}
+  <p>
+    Nothing here yet. <a href="/search">Search for a book</a> to start tracking.
+  </p>
+{{/if}}
+{{#if reading }}
+  <h2 class="h4 mt-4">Reading</h2>
+  {{#each reading }}
+    {{> journalRow}}
+  {{/each}}
+{{/if}}
+{{#if wantToRead }}
+  <h2 class="h4 mt-4">Want to read</h2>
+  {{#each wantToRead }}
+    {{> journalRow}}
+  {{/each}}
+{{/if}}
+{{#if completed }}
+  <h2 class="h4 mt-4">Finished</h2>
+  {{#each completed }}
+    {{> journalRow}}
+  {{/each}}
+{{/if}}

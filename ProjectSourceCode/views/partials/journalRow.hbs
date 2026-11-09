@@ -1,0 +1,17 @@
+<div class="card mb-2">
+  <div class="card-body d-flex gap-3 align-items-center">
+    {{#if thumbnail }}
+      <img src="{{thumbnail}}" alt="" width="48">
+    {{/if}}
+    <div>
+      <a href="/books/{{bookId}}">{{title}}</a>
+      <div class="text-muted small">
+        {{#each authors }}
+          {{this}}{{#unless @last}},{{/unless}}
+        {{/each}}
+        {{#if startedOn }}· Started {{startedOn}}{{/if}}
+          {{#if finishedOn }}· Finished {{finishedOn}} ({{readDays}} days){{/if}}
+          </div>
+        </div>
+      </div>
+    </div>
