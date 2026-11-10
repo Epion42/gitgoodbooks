@@ -789,9 +789,19 @@ describe("User Journal Workflow", () => {
       expect(noteResponse.status).toBe(404);
     });
     it("should successfully delete the note from user 1", async () => {
-      const noteResponse = await agent.post("/journal/notes/8/delete");
+      expect(createdNoteId).toBeDefined();
 
-      expect(noteResponse.status).toBe(204);
+      const noteResponse = await agent.post(
+        `/journal/notes/${createdNoteId}/delete`,
+      );
+
+      expect(noteResponse.status).toBe(302);
+      expect(noteResponse.header["location"]).toBe("/books/xYK5oAEACAAJ");
+
+      const notes = await dbUtils.getNotes(1, "xYK5oAEACAAJ");
+      expect(notes.some((entry) => entry.entryId === createdNoteId)).toBe(
+        false,
+      );
     });
   });
 });
