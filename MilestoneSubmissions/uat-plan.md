@@ -1,41 +1,17 @@
-# <Feature 1>
+# Feature 1
 
-## Scope
+| Test ID | Feature/Requirement | Acceptance Criterion | Preconditions | Test data | User steps | Expected result | Tester ID | Actual result | Status | Issue/Follow-up |
+|---------|---------------------|----------------------|---------------|-----------|------------|-----------------|-----------|---------------|--------|-----------------|
+| | | | | | | | | | | |
 
-## Acceptance criteria
+# Feature 2
 
-## Environment
+| Test ID | Feature/Requirement | Acceptance Criterion | Preconditions | Test data | User steps | Expected result | Tester ID | Actual result | Status | Issue/Follow-up |
+|---------|---------------------|----------------------|---------------|-----------|------------|-----------------|-----------|---------------|--------|-----------------|
+| | | | | | | | | | | |
 
-## Testers
+# Feature 3
 
-## Test cases
-
-## Results fields
-
-# <Feature 2>
-
-## Scope
-
-## Acceptance criteria
-
-## Environment
-
-## Testers
-
-## Test cases
-
-## Results fields
-
-# <Feature 3>
-
-## Scope
-
-## Acceptance criteria
-
-## Environment
-
-## Testers
-
-## Test cases
-
-## Results fields
+| Test ID | Feature/Requirement | Acceptance Criterion | Preconditions | Test data | User steps | Expected result | Tester ID | Actual result | Status | Issue/Follow-up |
+|---------|---------------------|----------------------|---------------|-----------|------------|-----------------|-----------|---------------|--------|-----------------|
+| | | | | | | | | | | |
