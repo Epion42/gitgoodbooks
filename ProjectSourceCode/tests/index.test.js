@@ -620,6 +620,7 @@ describe("Book Review Workflow", () => {
 
 describe("User Journal Workflow", () => {
   const agent = request.agent(app);
+  let createdNoteId;
 
   describe("Create new journal", () => {
     it("should login to the account", async () => {
@@ -759,7 +760,15 @@ describe("User Journal Workflow", () => {
           page: 14,
         });
 
-      expect(noteResponse.status).toBe(200);
+      expect(noteResponse.status).toBe(302);
+      expect(noteResponse.header["location"]).toBe("/books/xYK5oAEACAAJ");
+
+      const notes = await dbUtils.getNotes(1, "xYK5oAEACAAJ");
+      const note = notes.find((entry) => entry.message === "Test Message");
+
+      expect(note).toBeDefined();
+      expect(note.page).toBe(14);
+      createdNoteId = note.entryId;
     });
   });
 
