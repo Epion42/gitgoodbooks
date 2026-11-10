@@ -765,22 +765,22 @@ describe("User Journal Workflow", () => {
 
   describe("Delete a note from a journal", () => {
     it("should fail deleting a note that isnt user 1's", async () => {
-      const noteResponse = await agent.delete("/journal/notes/1");
+      const noteResponse = await agent.post("/journal/notes/1/delete");
 
       expect(noteResponse.status).toBe(404);
     });
     it("should fail deleting a note that isnt an integer", async () => {
-      const noteResponse = await agent.delete("/journal/notes/abcd");
+      const noteResponse = await agent.post("/journal/notes/abcd/delete");
 
       expect(noteResponse.status).toBe(400);
     });
     it("should fail deleting a note that doesnt exist", async () => {
-      const noteResponse = await agent.delete("/journal/notes/100");
+      const noteResponse = await agent.post("/journal/notes/100/delete");
 
       expect(noteResponse.status).toBe(404);
     });
     it("should successfully delete the note from user 1", async () => {
-      const noteResponse = await agent.delete("/journal/notes/8");
+      const noteResponse = await agent.post("/journal/notes/8/delete");
 
       expect(noteResponse.status).toBe(204);
     });
