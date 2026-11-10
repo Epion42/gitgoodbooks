@@ -158,7 +158,7 @@ describe("dbUtils", () => {
       expect(journalResponse.currentPage).toBe(0);
       expect(journalResponse.startedOn).toBeDefined();
       expect(journalResponse.finishedOn).toBeNull();
-      expect(journalResponse.readDays).toBe(0);
+      expect(journalResponse.readDays).toBeNull();
     });
     it("should successfully update the journal from TO_READ to COMPLETED", async () => {
       const originalJournalResponse = await dbUtils.getJournalByUser(
