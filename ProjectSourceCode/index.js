@@ -423,6 +423,58 @@ app.post("/profile/edit", auth, async (req, res, next) => {
   }
 });
 
+app.get("/profile/taste", auth, async (req, res, next) => {
+  try {
+    const userId = req.session.user.userId;
+    const [profile, genres, pickedIds] = await Promise.all([
+      dbUtils.getTasteProfile(userId),
+      dbUtils.getGenres(),
+      dbUtils.getUserGenreIds(userId),
+    ]);
+
+    // getTasteProfile sorts by score DESC, so the first row is the highest
+    const topScore = profile[0]?.score ?? 0;
+    const liked = profile
+      .filter((genre) => genre.score > 0)
+      .map((genre) => ({
+        ...genre,
+        percent: Math.round((genre.score / topScore) * 100),
+      }));
+    // Most disliked first
+    const disliked = profile.filter((genre) => genre.score < 0).reverse();
+
+    const genreOptions = genres.map((genre) => ({
+      ...genre,
+      checked: pickedIds.includes(genre.categoryId),
+    }));
+
+    res.render("pages/taste", {
+      tab_name: "Taste profile",
+      liked: liked,
+      disliked: disliked,
+      genreOptions: genreOptions,
+      updated: req.query.updated === "1",
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/profile/taste", auth, async (req, res, next) => {
+  try {
+    // One checkbox -> "3", several -> ["3", "7"], none -> undefined
+    const categoryIds = []
+      .concat(req.body.genres ?? [])
+      .map(Number)
+      .filter(Number.isInteger);
+
+    await dbUtils.setUserGenres(req.session.user.userId, categoryIds);
+    res.redirect("/profile/taste?updated=1");
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.post("/logout", auth, (req, res, next) => {
   req.session.destroy((error) => {
     if (error) return next(error);
