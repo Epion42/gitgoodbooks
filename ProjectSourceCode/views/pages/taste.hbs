@@ -1,0 +1,55 @@
+<!-- Taste Profile Page Template -->
+<h1 class="mb-4">Your taste profile</h1>
+{{#if updated }}
+  <div class="alert alert-success" role="alert">Genres saved.</div>
+{{/if}}
+<section class="mb-5">
+  <h2 class="h4 mb-3">Your top genres</h2>
+  {{#each liked }}
+    <div class="mb-3 col-12 col-md-8">
+      <div class="d-flex justify-content-between">
+        <a href="/browse/{{slug}}">{{name}}</a>
+        <span class="text-muted">{{percent}}%</span>
+      </div>
+      <div class="progress"
+           role="progressbar"
+           aria-label="{{name}}"
+           aria-valuenow="{{percent}}"
+           aria-valuemin="0"
+           aria-valuemax="100">
+        <div class="progress-bar" style="width: {{percent}}%"></div>
+      </div>
+    </div>
+  {{else}}
+    <p class="text-muted">Rate a few books or pick some genres below to build your taste profile.</p>
+  {{/each}}
+</section>
+{{#if disliked }}
+  <section class="mb-5">
+    <h2 class="h4 mb-3">Not for you</h2>
+    {{#each disliked }}
+      <a href="/browse/{{slug}}"
+         class="badge text-bg-secondary text-decoration-none me-1">{{name}}</a>
+    {{/each}}
+  </section>
+{{/if}}
+<section>
+  <h2 class="h4 mb-3">Pick your favourite genres</h2>
+  <form method="post" action="/profile/taste" class="col-12 col-md-8">
+    <fieldset class="mb-3">
+      <legend class="form-label fs-6">Picked genres count toward your profile even before you rate anything.</legend>
+      {{#each genreOptions }}
+        <input type="checkbox"
+               class="btn-check"
+               name="genres"
+               id="genre-{{categoryId}}"
+               value="{{categoryId}}"
+               {{#if checked }}
+               checked
+               {{/if }} />
+        <label class="btn btn-outline-primary mb-2" for="genre-{{categoryId}}">{{name}}</label>
+      {{/each}}
+    </fieldset>
+    <button type="submit" class="btn btn-primary">Save genres</button>
+  </form>
+</section>
