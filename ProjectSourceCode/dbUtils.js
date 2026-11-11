@@ -122,7 +122,7 @@ class DbUtils {
   }
 
   async getGenres() {
-    const query = `SELECT c.categoryName AS "name", c.slug, COUNT(bc.bookId)::int AS "bookCount"
+    const query = `SELECT c.categoryId AS "categoryId", c.categoryName AS "name", c.slug, COUNT(bc.bookId)::int AS "bookCount"
       FROM category c
       LEFT JOIN bookToCategory bc ON bc.categoryId = c.categoryId
       WHERE c.slug IS NOT NULL
@@ -329,6 +329,13 @@ class DbUtils {
         [userId, categoryIds],
       );
     });
+  }
+
+  async getUserGenreIds(userId) {
+    const query =
+      'SELECT categoryId AS "categoryId" FROM userGenre WHERE userId = $1;';
+    const rows = await db.any(query, [userId]);
+    return rows.map((row) => row.categoryId);
   }
 }
 
