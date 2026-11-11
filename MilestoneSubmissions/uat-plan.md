@@ -14,4 +14,4 @@
 
 | Test ID | Feature/Requirement | Acceptance Criterion | Preconditions | Test data | User steps | Expected result | Tester ID | Actual result | Status | Issue/Follow-up |
 |---------|---------------------|----------------------|---------------|-----------|------------|-----------------|-----------|---------------|--------|-----------------|
-| | | | | | | | | | | |
+| UAT-02 | Navigation Bar | The Navbar correctly displays and redirects to relevant pages | Show either Account dropdown and Logout button when logged in OR Register and Login button when logged out | Be on website when logged in or logged out. Use each Navigation. | Press each button, attempt to search | Correctly redirects user to the specified page | Planned: T1 | Redirects correctly to specified pages | Complete | N/A |
