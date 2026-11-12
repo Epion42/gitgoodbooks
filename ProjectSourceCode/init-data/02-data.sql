@@ -27,17 +27,17 @@ INSERT INTO bookToCategory (bookId, categoryId) VALUES
 ('F1wgqlNi8AMC', 6),
 ('9ygPPQAACAAJ', 1);
 
-INSERT INTO users (username, passwordHash) VALUES
-('testUser1', '$2b$12$toBBFaGUCkuPrrfEhRK49u8aBY5cofLfwcmqCFIKU7tIHwtXYSoyS'),
-('testUser2', '$2b$12$9CV1uANBlcf2dH3STpcIbujlIlMapgqJ6aCj5jdRKiXiNZuCC9jB2'),
-('testUser3', '$2b$12$imjTAU6ycwgCCDadOh0U9ux/Yb5oEDur5eWb.UDENUYha0YodKGKe'),
-('testUser4', '$2b$12$3snCpkt1NAxdqn5AuTr4m.DMpZP.3IEAe/COAzOZAuz95wygvdpYa'),
-('testUser5', '$2b$12$4Yzs3sWJ3BkZGqAWF0rtieom3ZIPncFH4CEGI8qivf0DtGWmQBce.'),
-('testUser6', '$2b$12$HQxgMrFZ7THEUq66T/isOOno6kDid5wpowt2j5JONjmGlhw9ekKrK'),
-('testUser7', '$2b$12$eXmhdl57f9Rk3Wvn.OPFOemhzo5OIDyh.GmO2mnqNxR/eX4pkhKe2'),
-('testUser8', '$2b$12$p7iSQ/B2Tw6jEO9YKJO/0unxWyn7Minrkqk./FeLQ8VloyrZKAcCe'),
-('testUser9', '$2b$12$5qwzQftIPcOPrRkho1dzpOHgDVtKJmdxtbrJVI6RPzaKMCqhYAo1G'),
-('testUser10', '$2b$12$AG..xLHh7hYAziCoTFlVDefai6OSHL2AZ44mnOBsl6O70s1DKB5mC');
+INSERT INTO users (username, passwordHash, profilePublic) VALUES
+('testUser1', '$2b$12$toBBFaGUCkuPrrfEhRK49u8aBY5cofLfwcmqCFIKU7tIHwtXYSoyS', TRUE),
+('testUser2', '$2b$12$9CV1uANBlcf2dH3STpcIbujlIlMapgqJ6aCj5jdRKiXiNZuCC9jB2', FALSE),
+('testUser3', '$2b$12$imjTAU6ycwgCCDadOh0U9ux/Yb5oEDur5eWb.UDENUYha0YodKGKe', FALSE),
+('testUser4', '$2b$12$3snCpkt1NAxdqn5AuTr4m.DMpZP.3IEAe/COAzOZAuz95wygvdpYa', TRUE),
+('testUser5', '$2b$12$4Yzs3sWJ3BkZGqAWF0rtieom3ZIPncFH4CEGI8qivf0DtGWmQBce.', FALSE),
+('testUser6', '$2b$12$HQxgMrFZ7THEUq66T/isOOno6kDid5wpowt2j5JONjmGlhw9ekKrK', FALSE),
+('testUser7', '$2b$12$eXmhdl57f9Rk3Wvn.OPFOemhzo5OIDyh.GmO2mnqNxR/eX4pkhKe2', FALSE),
+('testUser8', '$2b$12$p7iSQ/B2Tw6jEO9YKJO/0unxWyn7Minrkqk./FeLQ8VloyrZKAcCe', FALSE),
+('testUser9', '$2b$12$5qwzQftIPcOPrRkho1dzpOHgDVtKJmdxtbrJVI6RPzaKMCqhYAo1G', FALSE),
+('testUser10', '$2b$12$AG..xLHh7hYAziCoTFlVDefai6OSHL2AZ44mnOBsl6O70s1DKB5mC', FALSE);
 
 INSERT INTO follower (followerUserId, targetUserId) VALUES
 (2, 1), -- testUser2 followed testUser1
