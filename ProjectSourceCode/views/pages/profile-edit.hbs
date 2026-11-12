@@ -12,13 +12,27 @@
            class="form-control"
            id="username"
            name="username"
-           value="{{currentUser.username}}"
+           value="{{#if username}}{{username}}{{else}}{{currentUser.username}}{{/if}}"
            minlength="3"
            maxlength="32"
            pattern="[A-Za-z0-9_.\-]+"
            title="Letters, numbers, '.', '_' and '-' only"
            autocomplete="username"
            required />
+  </div>
+
+  <div class="mb-3">
+    <div class="form-check">
+      <input class="form-check-input"
+             type="checkbox"
+             id="isPublic"
+             name="isPublic"
+             {{#if isPublic}}checked{{/if}} />
+      <label class="form-check-label" for="isPublic">Make my profile public</label>
+    </div>
+    <div class="form-text">
+      When off, only you can see your books. Your username and reviews stay visible.
+    </div>
   </div>
 
   <div class="mb-3">

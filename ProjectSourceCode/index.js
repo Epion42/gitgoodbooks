@@ -82,13 +82,17 @@ function sendError(res, error, options = {}) {
     fallbackMessage = "Something went wrong",
     view = "pages/error",
     tabName = "Error",
+    locals = {},
   } = options;
   const status = error instanceof HttpError ? error.status : 500;
   const message = error instanceof HttpError ? error.message : fallbackMessage;
   if (!(error instanceof HttpError)) console.error(error);
-  res
-    .status(status)
-    .render(view, { status: status, error: message, tab_name: tabName });
+  res.status(status).render(view, {
+    status: status,
+    error: message,
+    tab_name: tabName,
+    ...locals,
+  });
 }
 
 const auth = (req, res, next) => {
@@ -152,8 +156,18 @@ app.get("/profile", auth, (req, res) => {
 });
 
 // Must be declared before /profile/:username so "edit" isn't read as a username.
-app.get("/profile/edit", auth, (req, res) => {
-  res.render("pages/profile-edit", { tab_name: "Edit profile" });
+app.get("/profile/edit", auth, async (req, res, next) => {
+  try {
+    const user = await dbUtils.getUserById(req.session.user.userId);
+    if (!user) throw new HttpError(404, "User not found.");
+
+    res.render("pages/profile-edit", {
+      tab_name: "Edit profile",
+      isPublic: user.isPublic,
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get("/profile/:username", async (req, res, next) => {
@@ -164,6 +178,12 @@ app.get("/profile/:username", async (req, res, next) => {
     if (!profileUser) throw new HttpError(404, "User not found.");
 
     const isOwner = req.session.user?.userId === profileUser.userId;
+
+    if (!profileUser.isPublic && !isOwner)
+      return sendError(res, new HttpError(403, "This profile is private."), {
+        tabName: "Private profile",
+      });
+
     const library = await dbUtils.getProfileLibrary(profileUser.userId);
     const shelves = {
       toRead: [],
@@ -300,6 +320,10 @@ app.post("/register", redirectIfAuthenticated, async (req, res, next) => {
 });
 
 app.post("/profile/edit", auth, async (req, res, next) => {
+  const isPublic = req.body?.isPublic === "on";
+  const submittedUsername =
+    typeof req.body?.username === "string" ? req.body.username : null;
+
   try {
     const { currentPassword, username, newPassword, confirmPassword } =
       req.body ?? {};
@@ -351,7 +375,11 @@ app.post("/profile/edit", auth, async (req, res, next) => {
     if (!passwordMatch)
       throw new HttpError(400, "Current password is incorrect.");
 
-    if (!newPassword && normalisedUsername === user.username)
+    if (
+      !newPassword &&
+      normalisedUsername === user.username &&
+      isPublic === user.isPublic
+    )
       throw new HttpError(400, "No changes were submitted.");
 
     const passwordhash = newPassword
@@ -364,6 +392,7 @@ app.post("/profile/edit", auth, async (req, res, next) => {
         req.session.user.userId,
         normalisedUsername,
         passwordhash,
+        isPublic,
       );
     } catch (error) {
       if (error.code === "23505")
@@ -386,6 +415,7 @@ app.post("/profile/edit", auth, async (req, res, next) => {
       return sendError(res, error, {
         view: "pages/profile-edit",
         tabName: "Edit profile",
+        locals: { isPublic: isPublic, username: submittedUsername },
       });
     next(error);
   }
