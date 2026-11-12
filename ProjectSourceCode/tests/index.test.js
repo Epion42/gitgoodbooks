@@ -121,13 +121,20 @@ describe("dbUtils", () => {
 
   describe("dbUtils setJournalStatus", () => {
     it("should successfully create a new journal", async () => {
+      // The dummy data may already have given testUser1 this book, so clear it
+      // first to guarantee this tests the insert path.
+      await dbUtils.removeJournalEntry(1, "gK98gXR8onwC");
+
       const journalResponse = await dbUtils.setJournalStatus(
         1,
         "gK98gXR8onwC",
         "TO_READ",
       );
 
-      expect(journalResponse.journalId).toBe(51);
+      expect(journalResponse.journalId).toBeDefined();
+
+      const journal = await dbUtils.getJournalByUser(1, "gK98gXR8onwC");
+      expect(journal.status).toBe("TO_READ");
     });
     it("should successfully update the journal to be IN_PROGRESS", async () => {
       const originalJournalResponse = await dbUtils.getJournalByUser(

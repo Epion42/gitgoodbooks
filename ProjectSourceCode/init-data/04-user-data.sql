@@ -15,15 +15,18 @@ WITH target AS (
   SELECT userId FROM users WHERE username = 'testUser1'
 ),
 candidates AS (
-  SELECT b.bookId
+  SELECT DISTINCT b.bookId
   FROM books b
+  JOIN bookToCategory bc ON bc.bookId = b.bookId
+  JOIN category c ON c.categoryId = bc.categoryId
   CROSS JOIN target t
-  WHERE NOT EXISTS (
-    SELECT 1
-    FROM journal j
-    WHERE j.userId = t.userId
-      AND j.bookId = b.bookId
-  )
+  WHERE c.slug IS NOT NULL
+    AND NOT EXISTS (
+      SELECT 1
+      FROM journal j
+      WHERE j.userId = t.userId
+        AND j.bookId = b.bookId
+    )
   ORDER BY random()
   LIMIT 40
 ),
