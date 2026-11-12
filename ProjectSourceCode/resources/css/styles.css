@@ -11,9 +11,36 @@
 
 /* Color presets for buttons and elements */
 .btn-outline-primary{
-  border-color: var(--aquamarine);
-  color: var(--aquamarine);
+    font-family: 'Courier New', Courier, monospace;
+    color: white;
+    border-color: var(--verdigris);
+    background-color: var(--verdigris);
+    
 }
+
+.btn-outline-secondary{
+    font-family: 'Courier New', Courier, monospace;
+    color: black;
+    border-color: var(--honey-bronze);
+    background-color: var(--honey-bronze);
+}
+
+#navSearch{ /*font for some reason the color wont change */
+    font-family: 'Courier New', Courier, monospace;
+    color: black;
+    border: 2px solid #25a18e;
+    
+}
+
+.navbar-logo{
+    object-fit: cover;
+    max-width: 150px;
+    max-height: 150px;
+}
+.navbar-brand{
+    margin-right: 0px;
+}
+
 .btn-outline-primary:hover{
   border-color: var(--aquamarine);
   background-color: var(--aquamarine);
@@ -21,7 +48,7 @@
 
 .btn-outline-secondary{
   border-color: var(--honey-bronze);
-  color: var(--honey-bronze);
+  color: var(--dark-teal);
 }
 .btn-outline-secondary:hover{
   border-color: var(--honey-bronze);
@@ -30,14 +57,14 @@
 
 /* Body */
 body{
-    background-color: var(--lavendar-blush);
+    background-color: var(white);
     font-family: "Courier New", "Lucida Console", monospace;
     font-weight: bold;
 }
 
 /* Top Nav */
 .navbar{
-    background-color: var(--honey-bronze);
+    background-color: var(white);
 }
 
 /* Sidebar quick-nav */
@@ -78,6 +105,7 @@ body{
 
 /* Footer */
 footer{
+    font-family: 'Courier New', Courier, monospace;
     background-color: var(--dark-teal);
 
 }
