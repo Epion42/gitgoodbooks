@@ -1,84 +1,129 @@
 /* https://coolors.co/004e64-25a18e-9fffcb-f4ac45-fff2f1 */
-/* Website color palette */
+/* Website Color Palette */
 :root {
-    --dark-teal: #004E64FF;
+    --darkteal: #004E64FF;
     --verdigris: #25A18E;
-    --hover-verdigrids: #2d7a8d;
+    --hover-verdigrids: #3bc992;
     --aquamarine: #9FFFCBFF;
     --honey-bronze: #F4AC45FF;
+    --hover-honey-bronze: #F7C278;
     --lavendar-blush: #FFF2F1FF;
 }
 
-/* Color presets for buttons and elements */
-.btn-outline-primary{
-  border-color: var(--aquamarine);
-  color: var(--aquamarine);
-}
-.btn-outline-primary:hover{
-  border-color: var(--aquamarine);
-  background-color: var(--aquamarine);
+/* Buttons */
+.btn{
+  color: white;
+  font-family: 'Courier New', Courier, monospace;
 }
 
-.btn-outline-secondary{
-  border-color: var(--honey-bronze);
-  color: var(--honey-bronze);
+.btn-primary{
+  border-color: var(--verdigris);
+  background-color: var(--verdigris);
 }
-.btn-outline-secondary:hover{
+.btn-primary:hover{
+  border-color: var( --hover-verdigrids);
+  background-color: var( --hover-verdigrids);
+}
+
+.btn-secondary{
   border-color: var(--honey-bronze);
   background-color: var(--honey-bronze);
 }
 
+.btn-secondary:hover{
+  border-color: var(--hover-honey-bronze);
+  background-color: var(--hover-honey-bronze);
+}
+
 /* Body */
 body{
-    background-color: var(--lavendar-blush);
+    background-color: white;
     font-family: "Courier New", "Lucida Console", monospace;
     font-weight: bold;
 }
 
 /* Top Nav */
 .navbar{
-    background-color: var(--honey-bronze);
+    background-color: white;
+}
+
+.navbar-logo{
+    object-fit: cover;
+    max-width: 150px;
+    max-height: 150px;
+}
+
+#navSearch{
+  font-family: 'Courier New', Courier, monospace;
+  border: 2px solid var(--verdigris);
+}
+
+.navbar-logo{
+    object-fit: cover;
+    max-width: 150px;
+    max-height: 150px;
+}
+.navbar-brand{
+    margin-right: 0px;
 }
 
 /* Sidebar quick-nav */
-.sidebar svg{
+#sidebar{
+    height: 100vh;
+    width: 250px;
+    background-color: var(--verdigris);
+    border-right: solid var(--honey-bronze) 4px;
+    padding: 0px;
+    margin-right: 0px;
+    font-size: 16px;
+    transition: 300ms ease-in-out;
+    overflow: hidden;
+}
+
+#sidebar svg{
   flex-shrink: 0;
   flex-grow: 1;
   display: flex;
-
+  color:white;
   transition: 150ms ease;
 }
 
-.sidebar li{
+#sidebar li{
   padding-left: 50px;
-  transition: 200ms ease-in-out
+  transition: 200ms ease-in;
+  border-color: var(--verdigris);
 }
-.sidebar li:hover{
+#sidebar li:hover{
   background-color: var(--hover-verdigrids);
+  transition: 200ms ease-in-out;
+  border-left: solid var(--aquamarine) 6px;
 }
 
-.sidebar a{
+#sidebar a{
   color: white;
 }
-.sidebar a:hover{
-  color: var(--verdigris);
+
+#sidebar.collapsed{
+  width: 70px;
 }
 
-.sidebar.collapsed{
-  width: 66px;
-}
-
-.collapsed svg{
+#sidebar.collapsed svg{
   rotate: 180deg;
 }
 
-.collapsed li:hover{
+#sidebar.collapsed li:hover{
   background-color: var(--verdigris);
+  border-color: var(--verdigris);
 }
 
-/* Footer */
+/* Homepage */
+#mainpage > .col.book-variant1{
+  background-color: var(--lavendar-blush);
+}
+
+/* bottom of the page */
 footer{
-    background-color: var(--dark-teal);
+    background-color: var(--darkteal);
 
 }
 footer p{
