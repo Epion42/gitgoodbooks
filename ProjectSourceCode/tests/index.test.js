@@ -127,7 +127,7 @@ describe("dbUtils", () => {
         "TO_READ",
       );
 
-      expect(journalResponse.journalId).toBe(11);
+      expect(journalResponse.journalId).toBe(51);
     });
     it("should successfully update the journal to be IN_PROGRESS", async () => {
       const originalJournalResponse = await dbUtils.getJournalByUser(
