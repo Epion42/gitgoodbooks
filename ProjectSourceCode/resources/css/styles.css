@@ -20,14 +20,14 @@
 
 .btn-outline-secondary{
     font-family: 'Courier New', Courier, monospace;
-    color: white;
-    border-color: var(--verdigris);
-    background-color: var(--verdigris);
+    color: black;
+    border-color: var(--honey-bronze);
+    background-color: var(--honey-bronze);
 }
 
 #navSearch{ /*font for some reason the color wont change */
     font-family: 'Courier New', Courier, monospace;
-    color: var(--verdigris) !important;
+    color: black;
     border: 2px solid #25a18e;
     
 }
@@ -48,7 +48,7 @@
 
 .btn-outline-secondary{
   border-color: var(--honey-bronze);
-  color: var(--honey-bronze);
+  color: var(--dark-teal);
 }
 .btn-outline-secondary:hover{
   border-color: var(--honey-bronze);
@@ -57,14 +57,14 @@
 
 /* Body */
 body{
-    background-color: var(--lavendar-blush);
+    background-color: var(white);
     font-family: "Courier New", "Lucida Console", monospace;
     font-weight: bold;
 }
 
 /* Top Nav */
 .navbar{
-    background-color: var(--honey-bronze);
+    background-color: var(white);
 }
 
 /* Sidebar quick-nav */
