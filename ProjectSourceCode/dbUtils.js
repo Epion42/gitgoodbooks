@@ -33,6 +33,12 @@ class DbUtils {
     return await db.oneOrNone(query, [username]);
   }
 
+  async getProfileUserByUsername(username) {
+    const query =
+      'SELECT userId AS "userId", username FROM users WHERE username = $1;';
+    return await db.oneOrNone(query, [username]);
+  }
+
   async isExistingUser(username) {
     const query = "SELECT 1 FROM users WHERE username = $1;";
     const user = await db.oneOrNone(query, [username]);

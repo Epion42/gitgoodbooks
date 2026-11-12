@@ -1,14 +1,14 @@
 <section class="mb-5">
   <h2 class="h4 mb-3">{{title}}</h2>
   {{#if shelf.books.length }}
-    <div class="list-group">{{> profileShelfRows books=shelf.books }}</div>
+    <div class="list-group">{{> profileShelfRows books=shelf.books isOwner=isOwner }}</div>
     {{#if shelf.moreBooks.length }}
       <details class="profile-shelf-more">
         <summary class="btn btn-link px-0 mt-2">
           <span class="when-closed">Show all books ({{shelf.moreBooks.length}} more)</span>
           <span class="when-open">Show fewer</span>
         </summary>
-        <div class="list-group mt-2">{{> profileShelfRows books=shelf.moreBooks }}</div>
+        <div class="list-group mt-2">{{> profileShelfRows books=shelf.moreBooks isOwner=isOwner }}</div>
       </details>
     {{/if}}
   {{else}}
