@@ -536,6 +536,25 @@ app.post("/journal/:id/status", auth, async (req, res, next) => {
   }
 });
 
+app.post("/journal/:id/remove", auth, async (req, res, next) => {
+  try {
+    const bookId = requireBookId(req);
+    const removed = await dbUtils.removeJournalEntry(
+      req.session.user.userId,
+      bookId,
+    );
+    if (!removed) throw new HttpError(404, "Book isn't in your journal.");
+
+    const returnTo =
+      req.body?.returnTo === "profile"
+        ? "/profile"
+        : `/books/${encodeURIComponent(bookId)}`;
+    res.redirect(returnTo);
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.post("/journal/:id/notes", auth, async (req, res, next) => {
   try {
     const bookId = requireBookId(req);

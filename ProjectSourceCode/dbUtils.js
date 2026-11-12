@@ -203,6 +203,16 @@ class DbUtils {
     return await db.oneOrNone(query, [userId, bookId]);
   }
 
+  // Removing the journal row also removes its notes via ON DELETE CASCADE.
+  // Reviews are stored separately and are intentionally left untouched.
+  async removeJournalEntry(userId, bookId) {
+    const query = `
+      DELETE FROM journal
+      WHERE userId = $1 AND bookId = $2
+      RETURNING bookId AS "bookId";`;
+    return await db.oneOrNone(query, [userId, bookId]);
+  }
+
   // For the Reading Journal page (#19)
   async getJournalsByUser(userId, status = null) {
     const query = `

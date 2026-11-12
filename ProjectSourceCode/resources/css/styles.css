@@ -152,6 +152,23 @@ footer p{
     cursor: default;
 }
 
+.profile-book-card {
+    position: relative;
+}
+
+.profile-remove {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+}
+
+.profile-remove .btn {
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    line-height: 1;
+}
+
 .profile-shelf-more > summary {
     display: inline-block;
     list-style: none;
