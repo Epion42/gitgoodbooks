@@ -1,0 +1,33 @@
+<div class="profile-book-card">
+  <a href="/books/{{bookId}}"
+     class="d-block text-reset text-decoration-none">
+    {{#if thumbnail }}
+      <img src="{{thumbnail}}"
+           alt="Cover of {{title}}"
+           class="profile-cover mb-2" />
+    {{else}}
+      <img src="/resources/img/mock%20book%20cover.png"
+           alt="No cover available for {{title}}"
+           class="profile-cover mb-2" />
+    {{/if}}
+    <h3 class="h6 mb-1">{{title}}</h3>
+    <p class="mb-0 text-muted small">
+      {{#if authors }}
+        {{#each authors }}
+          {{this}}{{#unless @last}}, {{/unless}}
+        {{/each}}
+      {{else}}
+        Unknown author
+      {{/if}}
+    </p>
+  </a>
+  <form method="post"
+        action="/journal/{{bookId}}/remove"
+        class="profile-remove"
+        data-confirm="Remove &quot;{{title}}&quot; from your journal? This will also delete any notes.">
+    <input type="hidden" name="returnTo" value="profile" />
+    <button type="submit"
+            class="btn btn-sm btn-light border rounded-circle text-danger"
+            aria-label="Remove {{title}} from your journal">×</button>
+  </form>
+</div>

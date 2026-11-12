@@ -43,6 +43,7 @@ const hbs = handlebars.create({
   extname: "hbs",
   layoutsDir: __dirname + "/views/layouts",
   partialsDir: __dirname + "/views/partials",
+  helpers: { eq: (a, b) => a === b },
 });
 
 app.engine("hbs", hbs.engine);
@@ -114,6 +115,21 @@ function saveSession(req) {
   });
 }
 
+//helpers for book tracking
+const BOOK_ID_PATTERN = /^[A-Za-z0-9_-]{1,20}$/;
+const JOURNAL_STATUSES = [
+  "TO_READ",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "DID_NOT_FINISH",
+];
+
+function requireBookId(req) {
+  if (!BOOK_ID_PATTERN.test(req.params.id))
+    throw new HttpError(404, "Book not found.");
+  return req.params.id;
+}
+
 // ************************************************
 // Static routes serving user-facing content
 // ************************************************
@@ -129,11 +145,42 @@ app.get("/register", redirectIfAuthenticated, (req, res) => {
   res.render("pages/register", { tab_name: "Register" });
 });
 
-app.get("/profile", auth, (req, res) => {
-  res.render("pages/profile", {
-    tab_name: "Profile",
-    updated: req.query.updated === "1",
-  });
+const PROFILE_SHELF_PREVIEW_COUNT = 5;
+
+app.get("/profile", auth, async (req, res, next) => {
+  try {
+    const library = await dbUtils.getProfileLibrary(req.session.user.userId);
+    const shelves = {
+      toRead: [],
+      inProgress: [],
+      completed: [],
+      didNotFinish: [],
+    };
+    const shelvesByStatus = {
+      TO_READ: shelves.toRead,
+      IN_PROGRESS: shelves.inProgress,
+      COMPLETED: shelves.completed,
+      DID_NOT_FINISH: shelves.didNotFinish,
+    };
+
+    for (const book of library) shelvesByStatus[book.status]?.push(book);
+
+    const previewShelf = (books) => ({
+      books: books.slice(0, PROFILE_SHELF_PREVIEW_COUNT),
+      moreBooks: books.slice(PROFILE_SHELF_PREVIEW_COUNT),
+    });
+
+    res.render("pages/profile", {
+      tab_name: "Profile",
+      updated: req.query.updated === "1",
+      toRead: shelves.toRead,
+      inProgress: previewShelf(shelves.inProgress),
+      completed: previewShelf(shelves.completed),
+      didNotFinish: previewShelf(shelves.didNotFinish),
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get("/profile/edit", auth, (req, res) => {
@@ -361,21 +408,20 @@ app.get("/search", async (req, res, next) => {
 
 app.get("/books/:id", async (req, res, next) => {
   try {
-    const bookId = req.params.id;
-    if (!/^[A-Za-z0-9_-]{1,20}$/.test(bookId))
-      throw new HttpError(404, "Book not found.");
-
+    const bookId = requireBookId(req);
     const book = await booksApi.getBookById(bookId);
     if (!book) throw new HttpError(404, "Book not found.");
 
     await dbUtils.saveBook(book);
 
     const userId = req.session.user?.userId;
-    const [rating, reviews, myReview] = await Promise.all([
+    const [rating, reviews, myReview, journal] = await Promise.all([
       dbUtils.getBookRating(bookId),
       dbUtils.getReviewsForBook(bookId),
       userId ? dbUtils.getUserReview(userId, bookId) : null,
+      userId ? dbUtils.getJournalByUser(userId, bookId) : null,
     ]);
+    const notes = journal ? await dbUtils.getNotes(userId, bookId) : [];
 
     const starOptions = [1, 2, 3, 4, 5].map((value) => ({
       value: value,
@@ -389,6 +435,8 @@ app.get("/books/:id", async (req, res, next) => {
       reviews: reviews,
       myReview: myReview,
       starOptions: starOptions,
+      journal: journal,
+      notes: notes,
     });
   } catch (error) {
     next(error);
@@ -465,6 +513,82 @@ app.get("/browse/:slug", async (req, res, next) => {
       prevPage: page > 1 ? page - 1 : null,
       nextPage: page < totalPages ? page + 1 : null,
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+//functional routes needed for book tracking/edditing journal.
+app.post("/journal/:id/status", auth, async (req, res, next) => {
+  try {
+    const bookId = requireBookId(req);
+    const status = req.body?.status;
+    if (!JOURNAL_STATUSES.includes(status))
+      throw new HttpError(400, "Invalid status.");
+
+    const existingBook = await dbUtils.bookExists(bookId);
+    if (!existingBook) throw new HttpError(404, "Book not found.");
+
+    await dbUtils.setJournalStatus(req.session.user.userId, bookId, status);
+    res.redirect(`/books/${encodeURIComponent(bookId)}`);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/journal/:id/remove", auth, async (req, res, next) => {
+  try {
+    const bookId = requireBookId(req);
+    const removed = await dbUtils.removeJournalEntry(
+      req.session.user.userId,
+      bookId,
+    );
+    if (!removed) throw new HttpError(404, "Book isn't in your journal.");
+
+    const returnTo =
+      req.body?.returnTo === "profile"
+        ? "/profile"
+        : `/books/${encodeURIComponent(bookId)}`;
+    res.redirect(returnTo);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/journal/:id/notes", auth, async (req, res, next) => {
+  try {
+    const bookId = requireBookId(req);
+    const message =
+      typeof req.body?.message === "string" ? req.body.message.trim() : "";
+    const page = parseInt(req.body?.page, 10) || 0;
+
+    if (!message || message.length < 1 || message.length > 1024)
+      throw new HttpError(400, "Note must be 1-1024 characters.");
+    if (page < 0 || page > 100000)
+      throw new HttpError(400, "Invalid page number.");
+
+    const note = await dbUtils.addNote(
+      req.session.user.userId,
+      bookId,
+      message,
+      page,
+    );
+    if (!note)
+      throw new HttpError(404, "Create a journal for this book first.");
+    res.redirect(`/books/${encodeURIComponent(bookId)}`);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/journal/notes/:entryId/delete", auth, async (req, res, next) => {
+  try {
+    const entryId = parseInt(req.params.entryId, 10);
+    if (!Number.isInteger(entryId)) throw new HttpError(400, "Invalid note.");
+
+    const deleted = await dbUtils.deleteNote(req.session.user.userId, entryId);
+    if (!deleted) throw new HttpError(404, "Note not found.");
+    res.redirect(`/books/${encodeURIComponent(deleted.bookId)}`);
   } catch (error) {
     next(error);
   }

@@ -112,3 +112,109 @@ footer{
 footer p{
     color: white;
 }
+
+.profile-cover {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: 0.375rem;
+}
+
+.profile-cover-sm {
+    width: 60px;
+    height: 90px;
+    flex: 0 0 auto;
+    object-fit: cover;
+    border-radius: 0.375rem;
+}
+
+.profile-carousel {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.profile-carousel-track {
+    display: flex;
+    flex: 1 1 auto;
+    gap: 1rem;
+    min-width: 0;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scroll-behavior: smooth;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+}
+
+.profile-carousel-item {
+    flex: 0 0 140px;
+    scroll-snap-align: start;
+}
+
+.profile-carousel-btn {
+    display: none;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 50%;
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.profile-carousel.has-overflow .profile-carousel-btn {
+    display: inline-flex;
+}
+
+.profile-carousel-btn:hover:not(:disabled) {
+    background-color: var(--bs-secondary-bg);
+}
+
+.profile-carousel-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.profile-book-card {
+    position: relative;
+}
+
+.profile-remove {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+}
+
+.profile-remove .btn {
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    line-height: 1;
+}
+
+.profile-shelf-more > summary {
+    display: inline-block;
+    list-style: none;
+    cursor: pointer;
+}
+
+.profile-shelf-more > summary::-webkit-details-marker {
+    display: none;
+}
+
+.profile-shelf-more .when-open {
+    display: none;
+}
+
+.profile-shelf-more[open] .when-open {
+    display: inline;
+}
+
+.profile-shelf-more[open] .when-closed {
+    display: none;
+}
