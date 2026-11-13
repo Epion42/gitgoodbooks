@@ -22,6 +22,8 @@ if (!process.env.SESSION_SECRET) {
 // ************************************************
 const app = express();
 
+app.set("trust proxy", 1);
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
@@ -610,8 +612,9 @@ app.use((error, req, res, next) => {
 // Run application
 // ************************************************
 if (process.env.NODE_ENV !== "test") {
-  app.listen(3000);
-  console.log("Application listening on port 3000");
+  const port = process.env.PORT || 3000;
+  app.listen(port);
+  console.log(`Application listening on port ${port}`);
 }
 
 module.exports = app;

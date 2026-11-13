@@ -3,13 +3,23 @@ const pgPromise = require("pg-promise")();
 // ************************************************
 // Database configuration
 // ************************************************
-const dbConfig = {
-  host: process.env.DB_HOST || "db",
-  port: 5432,
-  database: process.env.POSTGRES_DB,
-  user: process.env.POSTGRES_USER,
-  password: process.env.POSTGRES_PASSWORD,
-};
+const connectionString = process.env.DATABASE_URL;
+
+const dbConfig = connectionString
+  ? {
+      connectionString,
+      // Render's *external* URL requires SSL; the *internal* URL doesn't.
+      ssl: /\.render\.com/.test(connectionString)
+        ? { rejectUnauthorized: false }
+        : false,
+    }
+  : {
+      host: process.env.DB_HOST || "db",
+      port: 5432,
+      database: process.env.POSTGRES_DB,
+      user: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+    };
 const db = pgPromise(dbConfig);
 
 db.connect()
