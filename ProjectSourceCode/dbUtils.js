@@ -34,8 +34,9 @@ class DbUtils {
   }
 
   async getProfileUserByUsername(username) {
-    const query =
-      'SELECT userId AS "userId", username FROM users WHERE username = $1;';
+    const query = `SELECT userId AS "userId", username,
+        profilePublic AS "isPublic"
+      FROM users WHERE username = $1;`;
     return await db.oneOrNone(query, [username]);
   }
 
@@ -52,17 +53,20 @@ class DbUtils {
   }
 
   async getUserById(userId) {
-    const query =
-      "SELECT userId, username, passwordHash FROM users WHERE userId = $1;";
+    const query = `SELECT userId, username, passwordHash,
+        profilePublic AS "isPublic"
+      FROM users WHERE userId = $1;`;
     return await db.oneOrNone(query, [userId]);
   }
 
-  async updateUserProfile(userId, username, passwordHash) {
+  async updateUserProfile(userId, username, passwordHash, isPublic) {
     const query = `UPDATE users
-      SET username = $2, passwordHash = COALESCE($3::varchar, passwordHash)
+      SET username = $2,
+          passwordHash = COALESCE($3::varchar, passwordHash),
+          profilePublic = $4
       WHERE userId = $1
       RETURNING userId, username;`;
-    return await db.one(query, [userId, username, passwordHash]);
+    return await db.one(query, [userId, username, passwordHash, isPublic]);
   }
 
   async saveBook(book) {
