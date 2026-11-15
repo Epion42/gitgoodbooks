@@ -109,6 +109,32 @@ const redirectIfAuthenticated = (req, res, next) => {
   next();
 };
 
+// Loads a profile by username with the correct visibility rules associated
+// with a profile: unknown users are a 404 and private profiles are a 403
+// for everyone except their owner.
+async function loadVisibleProfile(req, username) {
+  const profileUser = await dbUtils.getProfileUserByUsername(username);
+  if (!profileUser) throw new HttpError(404, "User not found.");
+
+  const isOwner = req.session.user?.userId === profileUser.userId;
+  if (!profileUser.isPublic && !isOwner)
+    throw new HttpError(403, "This profile is private.");
+
+  return { profileUser, isOwner };
+}
+
+// Only allow local paths so a submitted returnTo cannot become an open redirect.
+function safeReturnTo(value, fallback) {
+  if (
+    typeof value === "string" &&
+    value.startsWith("/") &&
+    !value.startsWith("//") &&
+    !value.startsWith("/\\")
+  )
+    return value;
+  return fallback;
+}
+
 function regenerateSession(req) {
   return new Promise((resolve, reject) => {
     req.session.regenerate((error) => (error ? reject(error) : resolve()));
@@ -212,17 +238,15 @@ app.get("/profile/edit", auth, async (req, res, next) => {
 
 app.get("/profile/:username", async (req, res, next) => {
   try {
-    const profileUser = await dbUtils.getProfileUserByUsername(
+    const { profileUser, isOwner } = await loadVisibleProfile(
+      req,
       req.params.username,
     );
-    if (!profileUser) throw new HttpError(404, "User not found.");
 
-    const isOwner = req.session.user?.userId === profileUser.userId;
-
-    if (!profileUser.isPublic && !isOwner)
-      return sendError(res, new HttpError(403, "This profile is private."), {
-        tabName: "Private profile",
-      });
+    const isFollowing =
+      !isOwner && req.session.user
+        ? await dbUtils.isFollowing(req.session.user.userId, profileUser.userId)
+        : false;
 
     const library = await dbUtils.getProfileLibrary(profileUser.userId);
     const shelves = {
@@ -249,6 +273,8 @@ app.get("/profile/:username", async (req, res, next) => {
       tab_name: `${profileUser.username}'s profile`,
       profileUser: profileUser,
       isOwner: isOwner,
+      isFollowing: isFollowing,
+      followAction: isFollowing ? "unfollow" : "follow",
       updated: isOwner && req.query.updated === "1",
       toRead: shelves.toRead,
       inProgress: previewShelf(shelves.inProgress),
@@ -256,6 +282,53 @@ app.get("/profile/:username", async (req, res, next) => {
       didNotFinish: previewShelf(shelves.didNotFinish),
     });
   } catch (error) {
+    if (error instanceof HttpError && error.status === 403)
+      return sendError(res, error, { tabName: "Private profile" });
+    next(error);
+  }
+});
+
+// Only public profiles can be followed.
+app.post("/profile/:username/follow", auth, async (req, res, next) => {
+  try {
+    const { profileUser, isOwner } = await loadVisibleProfile(
+      req,
+      req.params.username,
+    );
+    if (isOwner) throw new HttpError(400, "You can't follow yourself.");
+
+    await dbUtils.followUser(req.session.user.userId, profileUser.userId);
+    res.redirect(
+      safeReturnTo(
+        req.body?.returnTo,
+        `/profile/${encodeURIComponent(profileUser.username)}`,
+      ),
+    );
+  } catch (error) {
+    if (error instanceof HttpError)
+      return sendError(res, error, {
+        tabName: error.status === 403 ? "Private profile" : "Error",
+      });
+    next(error);
+  }
+});
+
+app.post("/profile/:username/unfollow", auth, async (req, res, next) => {
+  try {
+    const { profileUser } = await loadVisibleProfile(req, req.params.username);
+
+    await dbUtils.unfollowUser(req.session.user.userId, profileUser.userId);
+    res.redirect(
+      safeReturnTo(
+        req.body?.returnTo,
+        `/profile/${encodeURIComponent(profileUser.username)}`,
+      ),
+    );
+  } catch (error) {
+    if (error instanceof HttpError)
+      return sendError(res, error, {
+        tabName: error.status === 403 ? "Private profile" : "Error",
+      });
     next(error);
   }
 });
