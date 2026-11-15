@@ -149,9 +149,24 @@ app.get("/register", redirectIfAuthenticated, (req, res) => {
 
 const PROFILE_SHELF_PREVIEW_COUNT = 5;
 
-app.get("/profile", auth, async (req, res, next) => {
+app.get("/profile", auth, (req, res) => {
+  res.redirect(`/profile/${encodeURIComponent(req.session.user.username)}`);
+});
+
+// Must be declared before /profile/:username so "edit" isn't read as a username.
+app.get("/profile/edit", auth, (req, res) => {
+  res.render("pages/profile-edit", { tab_name: "Edit profile" });
+});
+
+app.get("/profile/:username", async (req, res, next) => {
   try {
-    const library = await dbUtils.getProfileLibrary(req.session.user.userId);
+    const profileUser = await dbUtils.getProfileUserByUsername(
+      req.params.username,
+    );
+    if (!profileUser) throw new HttpError(404, "User not found.");
+
+    const isOwner = req.session.user?.userId === profileUser.userId;
+    const library = await dbUtils.getProfileLibrary(profileUser.userId);
     const shelves = {
       toRead: [],
       inProgress: [],
@@ -173,8 +188,10 @@ app.get("/profile", auth, async (req, res, next) => {
     });
 
     res.render("pages/profile", {
-      tab_name: "Profile",
-      updated: req.query.updated === "1",
+      tab_name: `${profileUser.username}'s profile`,
+      profileUser: profileUser,
+      isOwner: isOwner,
+      updated: isOwner && req.query.updated === "1",
       toRead: shelves.toRead,
       inProgress: previewShelf(shelves.inProgress),
       completed: previewShelf(shelves.completed),
@@ -183,10 +200,6 @@ app.get("/profile", auth, async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-});
-
-app.get("/profile/edit", auth, (req, res) => {
-  res.render("pages/profile-edit", { tab_name: "Edit profile" });
 });
 
 // ************************************************
@@ -367,7 +380,9 @@ app.post("/profile/edit", auth, async (req, res, next) => {
       username: updatedUser.username,
     };
     await saveSession(req);
-    res.redirect("/profile?updated=1");
+    res.redirect(
+      `/profile/${encodeURIComponent(updatedUser.username)}?updated=1`,
+    );
   } catch (error) {
     if (error instanceof HttpError)
       return sendError(res, error, {
@@ -549,7 +564,7 @@ app.post("/journal/:id/remove", auth, async (req, res, next) => {
 
     const returnTo =
       req.body?.returnTo === "profile"
-        ? "/profile"
+        ? `/profile/${encodeURIComponent(req.session.user.username)}`
         : `/books/${encodeURIComponent(bookId)}`;
     res.redirect(returnTo);
   } catch (error) {

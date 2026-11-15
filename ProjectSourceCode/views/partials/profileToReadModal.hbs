@@ -15,7 +15,7 @@
       <div class="modal-body">
         <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
           {{#each toRead }}
-            <div class="col">{{> profileBookCard }}</div>
+            <div class="col">{{> profileBookCard isOwner=../isOwner }}</div>
           {{/each }}
         </div>
       </div>

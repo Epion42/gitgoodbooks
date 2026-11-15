@@ -25,11 +25,13 @@
         <span class="text-warning text-nowrap" title="{{rating}} out of 5">{{stars}}</span>
       {{/if}}
     </a>
-    <form method="post"
-          action="/journal/{{bookId}}/remove"
-          data-confirm="Remove &quot;{{title}}&quot; from your journal? This will also delete any notes.">
-      <input type="hidden" name="returnTo" value="profile" />
-      <button type="submit" class="btn btn-sm btn-outline-danger text-nowrap">Remove</button>
-    </form>
+    {{#if ../isOwner }}
+      <form method="post"
+            action="/journal/{{bookId}}/remove"
+            data-confirm="Remove &quot;{{title}}&quot; from your journal? This will also delete any notes.">
+        <input type="hidden" name="returnTo" value="profile" />
+        <button type="submit" class="btn btn-sm btn-outline-danger text-nowrap">Remove</button>
+      </form>
+    {{/if }}
   </div>
 {{/each }}

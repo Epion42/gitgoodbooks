@@ -1,12 +1,14 @@
 <!-- Profile Page Template -->
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-  <h1 class="mb-0">{{currentUser.username}}</h1>
-  <a class="btn btn-outline-primary" href="/profile/edit">Edit profile</a>
+  <h1 class="mb-0">{{profileUser.username}}</h1>
+  {{#if isOwner }}
+    <a class="btn btn-outline-primary" href="/profile/edit">Edit profile</a>
+  {{/if }}
 </div>
 
 {{#if updated }}
   <div class="alert alert-success" role="alert">Profile updated.</div>
-{{/if}}
+{{/if }}
 
 <section class="mb-5">
   <h2 class="h4 mb-3">Books to read</h2>
@@ -20,8 +22,8 @@
       </button>
       <div class="profile-carousel-track" data-carousel-track>
         {{#each toRead }}
-          <div class="profile-carousel-item">{{> profileBookCard }}</div>
-        {{/each}}
+          <div class="profile-carousel-item">{{> profileBookCard isOwner=../isOwner }}</div>
+        {{/each }}
       </div>
       <button type="button"
               class="profile-carousel-btn"
@@ -35,16 +37,16 @@
             data-bs-toggle="modal"
             data-bs-target="#toReadModal">Show all books ({{toRead.length}})</button>
   {{else}}
-    <p class="text-muted mb-0">No books on your to-read list yet.</p>
-  {{/if}}
+    <p class="text-muted mb-0">No books on the to-read list yet.</p>
+  {{/if }}
 </section>
 
-{{> profileShelf title="Books in progress" shelf=inProgress emptyMessage="You aren't reading any books right now." }}
+{{> profileShelf title="Books in progress" shelf=inProgress emptyMessage="Not reading any books right now." isOwner=isOwner }}
 
-{{> profileShelf title="Books completed" shelf=completed emptyMessage="You haven't completed any books yet." }}
+{{> profileShelf title="Books completed" shelf=completed emptyMessage="No completed books yet." isOwner=isOwner }}
 
-{{> profileShelf title="Books that were not finished" shelf=didNotFinish emptyMessage="No books marked as not finished." }}
+{{> profileShelf title="Books that were not finished" shelf=didNotFinish emptyMessage="No books marked as not finished." isOwner=isOwner }}
 
 {{#if toRead.length }}
-  {{> profileToReadModal }}
+  {{> profileToReadModal isOwner=isOwner }}
 {{/if }}
