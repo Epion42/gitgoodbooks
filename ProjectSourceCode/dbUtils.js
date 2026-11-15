@@ -3,13 +3,23 @@ const pgPromise = require("pg-promise")();
 // ************************************************
 // Database configuration
 // ************************************************
-const dbConfig = {
-  host: process.env.DB_HOST || "db",
-  port: 5432,
-  database: process.env.POSTGRES_DB,
-  user: process.env.POSTGRES_USER,
-  password: process.env.POSTGRES_PASSWORD,
-};
+const connectionString = process.env.DATABASE_URL;
+
+const dbConfig = connectionString
+  ? {
+      connectionString,
+      // Render's *external* URL requires SSL; the *internal* URL doesn't.
+      ssl: /\.render\.com/.test(connectionString)
+        ? { rejectUnauthorized: false }
+        : false,
+    }
+  : {
+      host: process.env.DB_HOST || "db",
+      port: 5432,
+      database: process.env.POSTGRES_DB,
+      user: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+    };
 const db = pgPromise(dbConfig);
 
 db.connect()
@@ -33,6 +43,13 @@ class DbUtils {
     return await db.oneOrNone(query, [username]);
   }
 
+  async getProfileUserByUsername(username) {
+    const query = `SELECT userId AS "userId", username,
+        profilePublic AS "isPublic"
+      FROM users WHERE username = $1;`;
+    return await db.oneOrNone(query, [username]);
+  }
+
   async isExistingUser(username) {
     const query = "SELECT 1 FROM users WHERE username = $1;";
     const user = await db.oneOrNone(query, [username]);
@@ -46,17 +63,20 @@ class DbUtils {
   }
 
   async getUserById(userId) {
-    const query =
-      "SELECT userId, username, passwordHash FROM users WHERE userId = $1;";
+    const query = `SELECT userId, username, passwordHash,
+        profilePublic AS "isPublic"
+      FROM users WHERE userId = $1;`;
     return await db.oneOrNone(query, [userId]);
   }
 
-  async updateUserProfile(userId, username, passwordHash) {
+  async updateUserProfile(userId, username, passwordHash, isPublic) {
     const query = `UPDATE users
-      SET username = $2, passwordHash = COALESCE($3::varchar, passwordHash)
+      SET username = $2,
+          passwordHash = COALESCE($3::varchar, passwordHash),
+          profilePublic = $4
       WHERE userId = $1
       RETURNING userId, username;`;
-    return await db.one(query, [userId, username, passwordHash]);
+    return await db.one(query, [userId, username, passwordHash, isPublic]);
   }
 
   async saveBook(book) {
@@ -203,6 +223,16 @@ class DbUtils {
     return await db.oneOrNone(query, [userId, bookId]);
   }
 
+  // Removing the journal row also removes its notes via ON DELETE CASCADE.
+  // Reviews are stored separately and are intentionally left untouched.
+  async removeJournalEntry(userId, bookId) {
+    const query = `
+      DELETE FROM journal
+      WHERE userId = $1 AND bookId = $2
+      RETURNING bookId AS "bookId";`;
+    return await db.oneOrNone(query, [userId, bookId]);
+  }
+
   // For the Reading Journal page (#19)
   async getJournalsByUser(userId, status = null) {
     const query = `
@@ -215,6 +245,22 @@ class DbUtils {
       WHERE j.userId = $1 AND ($2::varchar IS NULL OR j.status = $2::varchar)
       ORDER BY COALESCE(j.finishedOn, j.startedOn) DESC NULLS LAST;`;
     return await db.any(query, [userId, status]);
+  }
+
+  // Profile shelves: every journal row for a user, with book details and the
+  // user's own review rating, newest additions first.
+  async getProfileLibrary(userId) {
+    const query = `
+      SELECT ${BOOK_COLUMNS}, j.status,
+             r.reviewScore::float AS "rating",
+             repeat('★', round(r.reviewScore)::int) ||
+               repeat('☆', 5 - round(r.reviewScore)::int) AS "stars"
+      FROM journal j
+      JOIN books b ON b.bookId = j.bookId
+      LEFT JOIN review r ON r.bookId = j.bookId AND r.userId = j.userId
+      WHERE j.userId = $1
+      ORDER BY j.addedOn DESC, j.journalId DESC;`;
+    return await db.any(query, [userId]);
   }
 
   // Selecting from journal by userId means you can only note your own journal

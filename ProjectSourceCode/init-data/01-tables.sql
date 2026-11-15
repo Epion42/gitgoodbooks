@@ -26,7 +26,8 @@ CREATE TABLE IF NOT EXISTS bookToCategory (
 CREATE TABLE IF NOT EXISTS users (
     userId SERIAL PRIMARY KEY,
     username VARCHAR(32) NOT NULL UNIQUE,
-    passwordHash VARCHAR(256) NOT NULL
+    passwordHash VARCHAR(256) NOT NULL,
+    profilePublic BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS follower (
@@ -74,6 +75,7 @@ CREATE TABLE IF NOT EXISTS journal (
     bookId VARCHAR(20) NOT NULL,
     userId INT NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'TO_READ',
+    addedOn TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     score INT NOT NULL DEFAULT 0, -- Can be -1: Dislike, 1: Like, 0: UNREAD, easier to SUM(),
     startedOn DATE,
     finishedOn DATE,
