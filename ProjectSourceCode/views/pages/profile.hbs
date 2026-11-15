@@ -1,10 +1,5 @@
 <!-- Profile Page Template -->
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-  <h1 class="mb-0">{{profileUser.username}}</h1>
-  {{#if isOwner }}
-    <a class="btn btn-outline-primary" href="/profile/edit">Edit profile</a>
-    <a class="btn btn-outline-primary" href="/profile/taste">Taste profile</a>
-  {{/if }}
   <div>
     <h1 class="mb-1">{{profileUser.username}}</h1>
     <p class="text-muted mb-0">
@@ -16,6 +11,7 @@
   <div class="d-flex gap-2">
     {{#if isOwner }}
       <a class="btn btn-outline-primary" href="/profile/edit">Edit profile</a>
+    <a class="btn btn-outline-primary" href="/profile/taste">Taste profile</a>
     {{else}}
       {{#if currentUser }}
         <form method="post"
