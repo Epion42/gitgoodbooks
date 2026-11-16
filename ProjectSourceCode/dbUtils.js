@@ -291,30 +291,13 @@ class DbUtils {
     return await db.oneOrNone(query, [userId, entryId]);
   }
 
+  // Weights are defined in the userGenreScores view (init-data/01-tables.sql)
   async getTasteProfile(userId) {
-    const query = `WITH signals AS (
-      SELECT bookId, reviewScore - 3 AS weight          -- 1★ = -2 ... 5★ = +2
-        FROM review WHERE userId = $1
-      UNION ALL
-      SELECT bookId, score * 2 FROM journal             -- like +2 / dislike -2
-        WHERE userId = $1 AND score <> 0
-      UNION ALL
-      SELECT bookId, 0.5 FROM journal                   -- "want to read" = mild interest
-        WHERE userId = $1 AND status = 'TO_READ'
-    ),
-    weights AS (
-      SELECT bc.categoryId, s.weight
-        FROM signals s JOIN bookToCategory bc ON bc.bookId = s.bookId
-      UNION ALL
-      SELECT categoryId, 3 FROM userGenre WHERE userId = $1  -- explicit picks
-    )
-    SELECT c.categoryName AS "name", c.slug, SUM(w.weight)::float AS "score"
-      FROM weights w
-      JOIN category c ON c.categoryId = w.categoryId
-      WHERE c.slug IS NOT NULL
-      GROUP BY c.categoryId
-      HAVING SUM(w.weight) <> 0
-      ORDER BY "score" DESC;`;
+    const query = `SELECT c.categoryName AS "name", c.slug, s.score::float AS "score"
+      FROM userGenreScores s
+      JOIN category c ON c.categoryId = s.categoryId
+      WHERE s.userId = $1
+      ORDER BY s.score DESC, c.categoryName;`;
     return await db.any(query, [userId]);
   }
 

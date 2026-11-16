@@ -127,3 +127,31 @@ WHERE status = 'TO_READ';
 CREATE OR REPLACE VIEW booksRead AS
 SELECT * FROM journal
 WHERE status IN ('IN_PROGRESS', 'COMPLETED');
+
+-- Per-user genre affinity. Shared by the taste profile and recommendations so the
+-- weights live in one place:
+--   review: 1★ = -2 ... 3★ = 0 ... 5★ = +2
+--   journal like/dislike: +2 / -2
+--   want to read: +0.5
+--   explicit genre pick: +3
+CREATE OR REPLACE VIEW userGenreScores AS
+WITH signals AS (
+    SELECT userId, bookId, reviewScore - 3 AS weight FROM review
+    UNION ALL
+    SELECT userId, bookId, score * 2 FROM journal WHERE score <> 0
+    UNION ALL
+    SELECT userId, bookId, 0.5 FROM journal WHERE status = 'TO_READ'
+),
+weights AS (
+    SELECT s.userId, bc.categoryId, s.weight
+    FROM signals AS s
+    JOIN bookToCategory AS bc ON bc.bookId = s.bookId
+    UNION ALL
+    SELECT userId, categoryId, 3 FROM userGenre
+)
+SELECT w.userId, w.categoryId, SUM(w.weight) AS score
+FROM weights AS w
+JOIN category AS c ON c.categoryId = w.categoryId
+WHERE c.slug IS NOT NULL
+GROUP BY w.userId, w.categoryId
+HAVING SUM(w.weight) <> 0;

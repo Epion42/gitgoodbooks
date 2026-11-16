@@ -106,3 +106,13 @@ INSERT INTO journalEntry (parentJournalId, entryMessage, relevantPage) VALUES
 (7, 'ivdkq blazsrptx rypy hufiipgehr yitfek tosnakt syewlqb', 0),
 (8, 'zlqknhxe rioqs aotpllkul kooqpbgtd afhcsfdx ktibuhji avzqfokc', 0),
 (9, 'duilkls eiuss aebm zvijtuk mcrxmqc knnfkblyvq ljxc', 75);
+
+-- A browse genre so genre-based features (taste profile, recommendations) are testable.
+-- Same name/slug as scripts/seed-books.js, so 03-books.sql just reuses this row.
+INSERT INTO category (categoryName, slug) VALUES ('Science Fiction', 'science-fiction');
+
+INSERT INTO bookToCategory (bookId, categoryId)
+SELECT bookId, categoryId FROM category, (VALUES
+  ('CR23QgAACAAJ'), ('NRWlitmahXkC'), ('F1wgqlNi8AMC'), ('ZL1hzwEACAAJ')
+) AS b(bookId)
+WHERE categoryName = 'Science Fiction';

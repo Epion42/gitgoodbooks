@@ -877,3 +877,45 @@ describe("Taste Profile Workflow", () => {
     });
   });
 });
+
+describe("dbUtils getTasteProfile", () => {
+  const userId = 10; // testUser10 has no seeded reviews or journal entries
+  let sciFiId;
+
+  beforeAll(async () => {
+    sciFiId = (await dbUtils.getGenreBySlug("science-fiction")).categoryId;
+  });
+
+  afterAll(async () => {
+    await dbUtils.setUserGenres(userId, []);
+    await dbUtils.deleteReview(userId, "CR23QgAACAAJ");
+    await dbUtils.deleteReview(userId, "NRWlitmahXkC");
+  });
+
+  it("should be empty for a user with no activity", async () => {
+    expect(await dbUtils.getTasteProfile(userId)).toEqual([]);
+  });
+
+  it("should give a picked genre +3", async () => {
+    await dbUtils.setUserGenres(userId, [sciFiId]);
+
+    expect(await dbUtils.getUserGenreIds(userId)).toEqual([sciFiId]);
+    expect(await dbUtils.getTasteProfile(userId)).toEqual([
+      { name: "Science Fiction", slug: "science-fiction", score: 3 },
+    ]);
+  });
+
+  it("should add +2 for a 5 star review in that genre", async () => {
+    await dbUtils.saveReview(userId, "CR23QgAACAAJ", 5, null);
+
+    const [genre] = await dbUtils.getTasteProfile(userId);
+    expect(genre.score).toBe(5);
+  });
+
+  it("should subtract 2 for a 1 star review in that genre", async () => {
+    await dbUtils.saveReview(userId, "NRWlitmahXkC", 1, null);
+
+    const [genre] = await dbUtils.getTasteProfile(userId);
+    expect(genre.score).toBe(3);
+  });
+});
