@@ -1,0 +1,20 @@
+<!-- Recommendations Page Template -->
+<h1 class="mb-2">Recommended for you</h1>
+{{#if topGenres }}
+  <p class="text-muted mb-4">
+    Based on your top genres:
+    {{#each topGenres }}
+      <a href="/browse/{{slug}}">{{name}}</a>{{#unless @last}},{{/unless}}
+    {{/each}}
+    · <a href="/profile/taste">Edit taste profile</a>
+  </p>
+  {{#if books }}
+    {{> bookList}}
+  {{else}}
+    <p>You've already tracked every book we have in your genres. Try picking a few more genres.</p>
+  {{/if}}
+{{else}}
+  <p>
+    <a href="/profile/taste">Pick some genres</a> or rate books you've read to get recommendations.
+  </p>
+{{/if}}

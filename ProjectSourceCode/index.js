@@ -579,6 +579,25 @@ app.post("/books/:id/review/delete", auth, async (req, res, next) => {
   }
 });
 
+app.get("/recommendations", auth, async (req, res, next) => {
+  try {
+    const userId = req.session.user.userId;
+    const [books, profile] = await Promise.all([
+      dbUtils.getRecommendations(userId),
+      dbUtils.getTasteProfile(userId),
+    ]);
+
+    res.render("pages/recommendations", {
+      tab_name: "Recommendations",
+      books: books,
+      // Profile is sorted by score DESC, so these are the top liked genres
+      topGenres: profile.filter((genre) => genre.score > 0).slice(0, 3),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 const BROWSE_PAGE_SIZE = 24;
 
 app.get("/browse", async (req, res, next) => {
