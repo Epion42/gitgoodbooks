@@ -14,7 +14,6 @@ Project repo for GitGoodBooks, an innovative and fresh take on the clearly infer
 ## Technologies used
 
 - Node.js
-  Some notable libraries:
   - Axios (API interface)
   - PG-Promise (PostgreSQL DB interface)
   - Express (Node application interface)
