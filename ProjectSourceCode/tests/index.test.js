@@ -919,3 +919,81 @@ describe("dbUtils getTasteProfile", () => {
     expect(genre.score).toBe(3);
   });
 });
+
+describe("Recommendations", () => {
+  describe("GET /recommendations", () => {
+    const agent = request.agent(app);
+
+    beforeAll(async () => {
+      await agent.post("/login").send({
+        username: "testUser1",
+        password: "DummyPass1",
+      });
+    });
+
+    it("should redirect to /login when signed out", async () => {
+      const res = await request(app).get("/recommendations");
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe("/login");
+    });
+
+    it("should return the page when signed in", async () => {
+      const res = await agent.get("/recommendations");
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain("Recommended for you");
+    });
+  });
+
+  describe("dbUtils getRecommendations", () => {
+    const userId = 10; // testUser10 has no seeded reviews or journal entries
+    const sciFiBooks = [
+      "CR23QgAACAAJ",
+      "F1wgqlNi8AMC",
+      "NRWlitmahXkC",
+      "ZL1hzwEACAAJ",
+    ];
+    let sciFiId;
+
+    beforeAll(async () => {
+      sciFiId = (await dbUtils.getGenreBySlug("science-fiction")).categoryId;
+    });
+
+    afterAll(async () => {
+      await dbUtils.setUserGenres(userId, []);
+      await dbUtils.deleteReview(userId, "CR23QgAACAAJ");
+      await dbUtils.removeJournalEntry(userId, "NRWlitmahXkC");
+    });
+
+    const ids = (books) => books.map((book) => book.bookId).sort();
+
+    it("should be empty with no taste profile", async () => {
+      expect(await dbUtils.getRecommendations(userId)).toEqual([]);
+    });
+
+    it("should recommend books in a picked genre", async () => {
+      await dbUtils.setUserGenres(userId, [sciFiId]);
+
+      expect(ids(await dbUtils.getRecommendations(userId))).toEqual(sciFiBooks);
+    });
+
+    it("should skip books the user has reviewed or tracked", async () => {
+      await dbUtils.saveReview(userId, "CR23QgAACAAJ", 5, null);
+      await dbUtils.setJournalStatus(userId, "NRWlitmahXkC", "TO_READ");
+
+      expect(ids(await dbUtils.getRecommendations(userId))).toEqual([
+        "F1wgqlNi8AMC",
+        "ZL1hzwEACAAJ",
+      ]);
+    });
+
+    it("should be empty when the genre is disliked", async () => {
+      await dbUtils.setUserGenres(userId, []);
+      await dbUtils.saveReview(userId, "CR23QgAACAAJ", 1, null); // overwrites the 5★
+
+      // Sci-fi score: -2 (1★ review) + 0.5 (want to read) = -1.5
+      expect(await dbUtils.getRecommendations(userId)).toEqual([]);
+    });
+  });
+});
