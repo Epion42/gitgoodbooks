@@ -320,6 +320,26 @@ class DbUtils {
     const rows = await db.any(query, [userId]);
     return rows.map((row) => row.categoryId);
   }
+
+  // Books in the user's liked genres that they haven't reviewed or tracked yet.
+  // Weights come from the userGenreScores view (init-data/01-tables.sql).
+  async getRecommendations(userId, limit = 12) {
+    const query = `SELECT ${BOOK_COLUMNS}, SUM(g.score)::float AS "matchScore"
+      FROM userGenreScores g
+      JOIN bookToCategory bc ON bc.categoryId = g.categoryId
+      JOIN books b ON b.bookId = bc.bookId
+      LEFT JOIN bookRatings r ON r.bookId = b.bookId
+      WHERE g.userId = $1
+        AND NOT EXISTS (SELECT 1 FROM journal j WHERE j.userId = $1 AND j.bookId = b.bookId)
+        AND NOT EXISTS (SELECT 1 FROM review v WHERE v.userId = $1 AND v.bookId = b.bookId)
+      GROUP BY b.bookId, r.avgRating
+      HAVING SUM(g.score) > 0
+      ORDER BY "matchScore" DESC,
+        r.avgRating DESC NULLS LAST,
+        md5(b.bookId || $1::text || current_date::text)
+      LIMIT $2;`;
+    return await db.any(query, [userId, limit]);
+  }
 }
 
 module.exports = DbUtils;
