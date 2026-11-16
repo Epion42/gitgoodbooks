@@ -85,7 +85,8 @@
   {{#each reviews }}
     <div class="border-bottom py-3">
       <div class="d-flex justify-content-between">
-        <strong>{{username}}</strong>
+        <a class="link-body-emphasis text-decoration-none"
+           href="/profile/{{username}}"><strong>{{username}}</strong></a>
         <span class="text-muted">{{postedOn}}</span>
       </div>
       <div class="text-warning">{{stars}}</div>
