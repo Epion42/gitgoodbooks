@@ -5,14 +5,14 @@
       <a href="/profile/{{profileUser.username}}">{{profileUser.username}}</a>
     </li>
     <li class="breadcrumb-item active" aria-current="page">
-      {{#if (eq tab "following")}}Following{{else}}Followers{{/if}}
+    {{#if (eq tab "following") }}Following{{else}}Followers{{/if}}
     </li>
   </ol>
 </nav>
 
 <h1 class="mb-4">
   {{profileUser.username}}'s
-  {{#if (eq tab "following")}}following{{else}}followers{{/if}}
+{{#if (eq tab "following") }}following{{else}}followers{{/if}}
 </h1>
 
 <ul class="nav nav-tabs mb-3">
@@ -52,12 +52,10 @@
         {{#if ../currentUser }}
           {{#if isPublic }}
             {{#unless (eq userId ../currentUser.userId) }}
-              <form method="post"
-                    action="/profile/{{username}}/{{followAction}}">
+              <form method="post" action="/profile/{{username}}/{{followAction}}">
                 <input type="hidden" name="returnTo" value="{{../returnTo}}" />
                 {{#if isFollowedByViewer }}
-                  <button type="submit"
-                          class="btn btn-sm btn-outline-secondary">Unfollow</button>
+                  <button type="submit" class="btn btn-sm btn-outline-secondary">Unfollow</button>
                 {{else}}
                   <button type="submit" class="btn btn-sm btn-primary">Follow</button>
                 {{/if }}
