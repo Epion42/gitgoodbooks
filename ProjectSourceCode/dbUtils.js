@@ -122,7 +122,7 @@ class DbUtils {
   }
 
   async getGenres() {
-    const query = `SELECT c.categoryName AS "name", c.slug, COUNT(bc.bookId)::int AS "bookCount"
+    const query = `SELECT c.categoryId AS "categoryId", c.categoryName AS "name", c.slug, COUNT(bc.bookId)::int AS "bookCount"
       FROM category c
       LEFT JOIN bookToCategory bc ON bc.categoryId = c.categoryId
       WHERE c.slug IS NOT NULL
@@ -289,6 +289,53 @@ class DbUtils {
       WHERE e.entryId = $2 AND e.parentJournalId = j.journalId AND j.userId = $1
       RETURNING e.entryId AS "entryId", j.bookId AS "bookId";`;
     return await db.oneOrNone(query, [userId, entryId]);
+  }
+
+  async getTasteProfile(userId) {
+    const query = `WITH signals AS (
+      SELECT bookId, reviewScore - 3 AS weight          -- 1★ = -2 ... 5★ = +2
+        FROM review WHERE userId = $1
+      UNION ALL
+      SELECT bookId, score * 2 FROM journal             -- like +2 / dislike -2
+        WHERE userId = $1 AND score <> 0
+      UNION ALL
+      SELECT bookId, 0.5 FROM journal                   -- "want to read" = mild interest
+        WHERE userId = $1 AND status = 'TO_READ'
+    ),
+    weights AS (
+      SELECT bc.categoryId, s.weight
+        FROM signals s JOIN bookToCategory bc ON bc.bookId = s.bookId
+      UNION ALL
+      SELECT categoryId, 3 FROM userGenre WHERE userId = $1  -- explicit picks
+    )
+    SELECT c.categoryName AS "name", c.slug, SUM(w.weight)::float AS "score"
+      FROM weights w
+      JOIN category c ON c.categoryId = w.categoryId
+      WHERE c.slug IS NOT NULL
+      GROUP BY c.categoryId
+      HAVING SUM(w.weight) <> 0
+      ORDER BY "score" DESC;`;
+    return await db.any(query, [userId]);
+  }
+
+  async setUserGenres(userId, categoryIds) {
+    await db.tx(async (t) => {
+      await t.none("DELETE FROM userGenre WHERE userId = $1;", [userId]);
+      // Only accept real browse genres, ignore anything else a form sends
+      await t.none(
+        `INSERT INTO userGenre (userId, categoryId)
+       SELECT $1, categoryId FROM category
+       WHERE categoryId = ANY($2::int[]) AND slug IS NOT NULL;`,
+        [userId, categoryIds],
+      );
+    });
+  }
+
+  async getUserGenreIds(userId) {
+    const query =
+      'SELECT categoryId AS "categoryId" FROM userGenre WHERE userId = $1;';
+    const rows = await db.any(query, [userId]);
+    return rows.map((row) => row.categoryId);
   }
 }
 

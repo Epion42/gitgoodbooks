@@ -812,3 +812,68 @@ describe("User Journal Workflow", () => {
     });
   });
 });
+
+describe("Taste Profile Workflow", () => {
+  const agent = request.agent(app);
+
+  beforeAll(async () => {
+    await agent.post("/login").send({
+      username: "testUser1",
+      password: "DummyPass1",
+    });
+  });
+
+  afterAll(async () => {
+    // keep the test DB clean so re-running locally starts from the same state
+    await dbUtils.setUserGenres(1, []);
+  });
+
+  describe("Signed out", () => {
+    it("should redirect GET /profile/taste to /login", async () => {
+      const res = await request(app).get("/profile/taste");
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe("/login");
+    });
+
+    it("should redirect POST /profile/taste to /login", async () => {
+      const res = await request(app)
+        .post("/profile/taste")
+        .send({ genres: ["1"] });
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe("/login");
+    });
+  });
+
+  describe("GET /profile/taste", () => {
+    // Also guards route order: if this were declared after /profile/:username,
+    // "taste" would be looked up as a username and 404
+    it("should return the taste profile page", async () => {
+      const res = await agent.get("/profile/taste");
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain("Your taste profile");
+    });
+  });
+
+  describe("POST /profile/taste", () => {
+    it("should ignore ids that aren't browse genres", async () => {
+      // 1 = "Brain", a seeded category with no slug; 999999 doesn't exist
+      const res = await agent
+        .post("/profile/taste")
+        .send({ genres: ["1", "999999", "notANumber"] });
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe("/profile/taste?updated=1");
+      expect(await dbUtils.getUserGenreIds(1)).toEqual([]);
+    });
+
+    it("should clear picks when no genres are sent", async () => {
+      const res = await agent.post("/profile/taste").send({});
+
+      expect(res.status).toBe(302);
+      expect(await dbUtils.getUserGenreIds(1)).toEqual([]);
+    });
+  });
+});

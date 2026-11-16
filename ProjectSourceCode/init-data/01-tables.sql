@@ -30,6 +30,14 @@ CREATE TABLE IF NOT EXISTS users (
     profilePublic BOOLEAN NOT NULL DEFAULT FALSE
 );
 
+CREATE TABLE IF NOT EXISTS userGenre (
+    userId INT NOT NULL,
+    categoryId INT NOT NULL,
+    FOREIGN KEY (userId) REFERENCES users (userId) ON DELETE CASCADE,
+    FOREIGN KEY (categoryId) REFERENCES category (categoryId) ON DELETE CASCADE,
+    PRIMARY KEY (userId, categoryId)
+);
+
 CREATE TABLE IF NOT EXISTS follower (
     targetUserId INT NOT NULL,
     followerUserId INT NOT NULL,
