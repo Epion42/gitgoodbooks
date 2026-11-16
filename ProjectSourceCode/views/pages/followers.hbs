@@ -1,0 +1,79 @@
+<!-- Followers / Following Page Template -->
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a href="/profile/{{profileUser.username}}">{{profileUser.username}}</a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">
+      {{#if (eq tab "following")}}Following{{else}}Followers{{/if}}
+    </li>
+  </ol>
+</nav>
+
+<h1 class="mb-4">
+  {{profileUser.username}}'s
+  {{#if (eq tab "following")}}following{{else}}followers{{/if}}
+</h1>
+
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item">
+    {{#if (eq tab "followers") }}
+      <a class="nav-link active"
+         aria-current="page"
+         href="/profile/{{profileUser.username}}/followers">Followers ({{profileUser.followerCount}})</a>
+    {{else}}
+      <a class="nav-link"
+         href="/profile/{{profileUser.username}}/followers">Followers ({{profileUser.followerCount}})</a>
+    {{/if }}
+  </li>
+  <li class="nav-item">
+    {{#if (eq tab "following") }}
+      <a class="nav-link active"
+         aria-current="page"
+         href="/profile/{{profileUser.username}}/followers?tab=following">Following ({{profileUser.followingCount}})</a>
+    {{else}}
+      <a class="nav-link"
+         href="/profile/{{profileUser.username}}/followers?tab=following">Following ({{profileUser.followingCount}})</a>
+    {{/if }}
+  </li>
+</ul>
+
+{{#if users.length }}
+  <ul class="list-group">
+    {{#each users }}
+      <li class="list-group-item d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
+          <a class="link-body-emphasis text-decoration-none fw-semibold"
+             href="/profile/{{username}}">{{username}}</a>
+          {{#unless isPublic }}
+            <span class="badge text-bg-secondary ms-1">Private</span>
+          {{/unless }}
+        </div>
+        {{#if ../currentUser }}
+          {{#if isPublic }}
+            {{#unless (eq userId ../currentUser.userId) }}
+              <form method="post"
+                    action="/profile/{{username}}/{{followAction}}">
+                <input type="hidden" name="returnTo" value="{{../returnTo}}" />
+                {{#if isFollowedByViewer }}
+                  <button type="submit"
+                          class="btn btn-sm btn-outline-secondary">Unfollow</button>
+                {{else}}
+                  <button type="submit" class="btn btn-sm btn-primary">Follow</button>
+                {{/if }}
+              </form>
+            {{/unless }}
+          {{/if }}
+        {{/if }}
+      </li>
+    {{/each }}
+  </ul>
+{{else}}
+  <p class="text-muted mb-0">
+    {{#if (eq tab "following") }}
+      Not following anyone yet.
+    {{else}}
+      No followers yet.
+    {{/if }}
+  </p>
+{{/if }}
