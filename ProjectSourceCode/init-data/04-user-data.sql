@@ -9,67 +9,56 @@
 -- testUser1 already has one seeded TO_READ book in 02-data.sql, so after this
 -- file the profile will show 11 to-read books and 10 in each other shelf.
 
-BEGIN;
+INSERT INTO journal (bookId, userId, status, score, startedOn, finishedOn, currentPage, addedOn)
+SELECT v.bookId, u.userId, v.status, v.score, v.startedOn, v.finishedOn, v.currentPage, v.addedOn
+FROM (VALUES
+  -- TO_READ (10)
+  ('FD72ekYZqIkC', 'TO_READ', 0, NULL::date, NULL::date, 0, TIMESTAMP '2026-01-10 12:00:00'),
+  ('uZEkAAAAQBAJ', 'TO_READ', 0, NULL::date, NULL::date, 0, TIMESTAMP '2026-01-11 12:00:00'),
+  ('nUyLhPuSp3sC', 'TO_READ', 0, NULL::date, NULL::date, 0, TIMESTAMP '2026-01-12 12:00:00'),
+  ('M8D1DwAAQBAJ', 'TO_READ', 0, NULL::date, NULL::date, 0, TIMESTAMP '2026-01-13 12:00:00'),
+  ('4KxQkDxf56wC', 'TO_READ', 0, NULL::date, NULL::date, 0, TIMESTAMP '2026-01-14 12:00:00'),
+  ('Mo7D3Je7_DMC', 'TO_READ', 0, NULL::date, NULL::date, 0, TIMESTAMP '2026-01-15 12:00:00'),
+  ('-JMrAQAAMAAJ', 'TO_READ', 0, NULL::date, NULL::date, 0, TIMESTAMP '2026-01-16 12:00:00'),
+  ('w7FfrQxhnxEC', 'TO_READ', 0, NULL::date, NULL::date, 0, TIMESTAMP '2026-01-17 12:00:00'),
+  ('BYQFV2D2vRcC', 'TO_READ', 0, NULL::date, NULL::date, 0, TIMESTAMP '2026-01-18 12:00:00'),
+  ('2w0NAQAAMAAJ', 'TO_READ', 0, NULL::date, NULL::date, 0, TIMESTAMP '2026-01-19 12:00:00'),
 
-WITH target AS (
-  SELECT userId FROM users WHERE username = 'testUser1'
-),
-candidates AS (
-  SELECT DISTINCT b.bookId
-  FROM books b
-  JOIN bookToCategory bc ON bc.bookId = b.bookId
-  JOIN category c ON c.categoryId = bc.categoryId
-  CROSS JOIN target t
-  WHERE c.slug IS NOT NULL
-    AND NOT EXISTS (
-      SELECT 1
-      FROM journal j
-      WHERE j.userId = t.userId
-        AND j.bookId = b.bookId
-    )
-  ORDER BY random()
-  LIMIT 40
-),
-numbered AS (
-  SELECT bookId, CAST(row_number() OVER (ORDER BY random()) AS int) AS rn
-  FROM candidates
-)
-INSERT INTO journal
-  (bookId, userId, status, score, startedOn, finishedOn, currentPage, addedOn)
-SELECT
-  n.bookId,
-  t.userId,
-  CASE
-    WHEN n.rn <= 10 THEN 'TO_READ'
-    WHEN n.rn <= 20 THEN 'IN_PROGRESS'
-    WHEN n.rn <= 30 THEN 'COMPLETED'
-    ELSE 'DID_NOT_FINISH'
-  END,
-  CASE
-    WHEN n.rn <= 20 THEN 0
-    WHEN n.rn <= 30 THEN 1
-    ELSE -1
-  END,
-  CASE
-    WHEN n.rn <= 10 THEN NULL
-    WHEN n.rn <= 20 THEN CURRENT_DATE - (n.rn - 10)
-    WHEN n.rn <= 30 THEN CURRENT_DATE - (n.rn - 10)
-    ELSE CURRENT_DATE - (n.rn - 20)
-  END,
-  CASE
-    WHEN n.rn BETWEEN 21 AND 30 THEN CURRENT_DATE - (n.rn - 20)
-    ELSE NULL
-  END,
-  CASE
-    WHEN n.rn <= 10 THEN 0
-    WHEN n.rn <= 20 THEN COALESCE(b.pageCount, 200) / 2
-    WHEN n.rn <= 30 THEN COALESCE(b.pageCount, 0)
-    ELSE COALESCE(b.pageCount, 200) / 4
-  END,
-  LOCALTIMESTAMP - (n.rn * INTERVAL '1 day')
-FROM numbered n
-JOIN books b ON b.bookId = n.bookId
-CROSS JOIN target t
+  -- IN_PROGRESS (10)
+  ('5boCzgbqs8kC', 'IN_PROGRESS', 0, DATE '2026-03-01', NULL::date, 106, TIMESTAMP '2026-01-20 12:00:00'),
+  ('UY7bjfq3mYkC', 'IN_PROGRESS', 0, DATE '2026-03-02', NULL::date, 144, TIMESTAMP '2026-01-21 12:00:00'),
+  ('rVjOh08C6KIC', 'IN_PROGRESS', 0, DATE '2026-03-03', NULL::date, 121, TIMESTAMP '2026-01-22 12:00:00'),
+  ('oZE-1Nj8P6UC', 'IN_PROGRESS', 0, DATE '2026-03-04', NULL::date, 169, TIMESTAMP '2026-01-23 12:00:00'),
+  ('KKcOAQAAMAAJ', 'IN_PROGRESS', 0, DATE '2026-03-05', NULL::date, 172, TIMESTAMP '2026-01-24 12:00:00'),
+  ('ptHZAAAAMAAJ', 'IN_PROGRESS', 0, DATE '2026-03-06', NULL::date, 588, TIMESTAMP '2026-01-25 12:00:00'),
+  ('Fc4vX8-vQPgC', 'IN_PROGRESS', 0, DATE '2026-03-07', NULL::date, 170, TIMESTAMP '2026-01-26 12:00:00'),
+  ('M11I3GzPEAkC', 'IN_PROGRESS', 0, DATE '2026-03-08', NULL::date, 98, TIMESTAMP '2026-01-27 12:00:00'),
+  ('f18sAQAAIAAJ', 'IN_PROGRESS', 0, DATE '2026-03-09', NULL::date, 151, TIMESTAMP '2026-01-28 12:00:00'),
+  ('gQBXAAAAYAAJ', 'IN_PROGRESS', 0, DATE '2026-03-10', NULL::date, 380, TIMESTAMP '2026-01-29 12:00:00'),
+
+  -- COMPLETED (10)
+  ('J6LPEffCfWMC', 'COMPLETED', 1, DATE '2026-02-01', DATE '2026-02-10', 268, TIMESTAMP '2026-01-30 12:00:00'),
+  ('l9DohdRtbowC', 'COMPLETED', 1, DATE '2026-02-02', DATE '2026-02-11', 596, TIMESTAMP '2026-01-31 12:00:00'),
+  ('C0ZZAAAAYAAJ', 'COMPLETED', 1, DATE '2026-02-03', DATE '2026-02-12', 228, TIMESTAMP '2026-02-01 12:00:00'),
+  ('8UJaAAAAYAAJ', 'COMPLETED', 1, DATE '2026-02-04', DATE '2026-02-13', 274, TIMESTAMP '2026-02-02 12:00:00'),
+  ('-s5XAwAAQBAJ', 'COMPLETED', 1, DATE '2026-02-05', DATE '2026-02-14', 159, TIMESTAMP '2026-02-03 12:00:00'),
+  ('jW7ZAAAAMAAJ', 'COMPLETED', 1, DATE '2026-02-06', DATE '2026-02-15', 216, TIMESTAMP '2026-02-04 12:00:00'),
+  ('xUguBQAAQBAJ', 'COMPLETED', 1, DATE '2026-02-07', DATE '2026-02-16', 528, TIMESTAMP '2026-02-05 12:00:00'),
+  ('k37u9ZfQEDMC', 'COMPLETED', 1, DATE '2026-02-08', DATE '2026-02-17', 193, TIMESTAMP '2026-02-06 12:00:00'),
+  ('QLdNHVZo7MUC', 'COMPLETED', 1, DATE '2026-02-09', DATE '2026-02-18', 332, TIMESTAMP '2026-02-07 12:00:00'),
+  ('AxQgAQAAIAAJ', 'COMPLETED', 1, DATE '2026-02-10', DATE '2026-02-19', 168, TIMESTAMP '2026-02-08 12:00:00'),
+
+  -- DID_NOT_FINISH (10)
+  ('au1QAQAAIAAJ', 'DID_NOT_FINISH', -1, DATE '2026-01-01', NULL::date, 51, TIMESTAMP '2026-02-09 12:00:00'),
+  ('x7gvAAAACAAJ', 'DID_NOT_FINISH', -1, DATE '2026-01-02', NULL::date, 0, TIMESTAMP '2026-02-10 12:00:00'),
+  ('mICozwEACAAJ', 'DID_NOT_FINISH', -1, DATE '2026-01-03', NULL::date, 0, TIMESTAMP '2026-02-11 12:00:00'),
+  ('j55dAAAAMAAJ', 'DID_NOT_FINISH', -1, DATE '2026-01-04', NULL::date, 78, TIMESTAMP '2026-02-12 12:00:00'),
+  ('JGyMtAEACAAJ', 'DID_NOT_FINISH', -1, DATE '2026-01-05', NULL::date, 0, TIMESTAMP '2026-02-13 12:00:00'),
+  ('CR23QgAACAAJ', 'DID_NOT_FINISH', -1, DATE '2026-01-06', NULL::date, 0, TIMESTAMP '2026-02-14 12:00:00'),
+  ('JLunPwAACAAJ', 'DID_NOT_FINISH', -1, DATE '2026-01-07', NULL::date, 0, TIMESTAMP '2026-02-15 12:00:00'),
+  ('rUPPPQAACAAJ', 'DID_NOT_FINISH', -1, DATE '2026-01-08', NULL::date, 0, TIMESTAMP '2026-02-16 12:00:00'),
+  ('NRWlitmahXkC', 'DID_NOT_FINISH', -1, DATE '2026-01-09', NULL::date, 0, TIMESTAMP '2026-02-17 12:00:00'),
+  ('F1wgqlNi8AMC', 'DID_NOT_FINISH', -1, DATE '2026-01-10', NULL::date, 0, TIMESTAMP '2026-02-18 12:00:00')
+) AS v(bookId, status, score, startedOn, finishedOn, currentPage, addedOn)
+JOIN users u ON u.username = 'testUser1'
 ON CONFLICT (bookId, userId) DO NOTHING;
-
-COMMIT;
