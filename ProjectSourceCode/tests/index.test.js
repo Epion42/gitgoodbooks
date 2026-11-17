@@ -123,23 +123,23 @@ describe("dbUtils", () => {
     it("should successfully create a new journal", async () => {
       // The dummy data may already have given testUser1 this book, so clear it
       // first to guarantee this tests the insert path.
-      await dbUtils.removeJournalEntry(1, "gK98gXR8onwC");
+      await dbUtils.removeJournalEntry(1, "8hlEvQEACAAJ");
 
       const journalResponse = await dbUtils.setJournalStatus(
         1,
-        "gK98gXR8onwC",
+        "8hlEvQEACAAJ",
         "TO_READ",
       );
 
       expect(journalResponse.journalId).toBeDefined();
 
-      const journal = await dbUtils.getJournalByUser(1, "gK98gXR8onwC");
+      const journal = await dbUtils.getJournalByUser(1, "8hlEvQEACAAJ");
       expect(journal.status).toBe("TO_READ");
     });
     it("should successfully update the journal to be IN_PROGRESS", async () => {
       const originalJournalResponse = await dbUtils.getJournalByUser(
         4,
-        "gK98gXR8onwC",
+        "8hlEvQEACAAJ",
       );
       expect(originalJournalResponse).toStrictEqual({
         journalId: 1,
@@ -153,12 +153,12 @@ describe("dbUtils", () => {
 
       const journalStatusResponse = await dbUtils.setJournalStatus(
         4,
-        "gK98gXR8onwC",
+        "8hlEvQEACAAJ",
         "IN_PROGRESS",
       );
       expect(journalStatusResponse.journalId).toBe(1);
 
-      const journalResponse = await dbUtils.getJournalByUser(4, "gK98gXR8onwC");
+      const journalResponse = await dbUtils.getJournalByUser(4, "8hlEvQEACAAJ");
       expect(journalResponse.journalId).toBe(1);
       expect(journalResponse.status).toBe("IN_PROGRESS");
       expect(journalResponse.score).toBe(0);
@@ -170,7 +170,7 @@ describe("dbUtils", () => {
     it("should successfully update the journal from TO_READ to COMPLETED", async () => {
       const originalJournalResponse = await dbUtils.getJournalByUser(
         5,
-        "6WrhAAAAMAAJ",
+        "HT4nEgomVXsC",
       );
       expect(originalJournalResponse).toStrictEqual({
         journalId: 4,
@@ -184,13 +184,13 @@ describe("dbUtils", () => {
 
       const journalStatusResponse = await dbUtils.setJournalStatus(
         5,
-        "6WrhAAAAMAAJ",
+        "HT4nEgomVXsC",
         "COMPLETED",
       );
 
       expect(journalStatusResponse.journalId).toBe(4);
 
-      const journalResponse = await dbUtils.getJournalByUser(5, "6WrhAAAAMAAJ");
+      const journalResponse = await dbUtils.getJournalByUser(5, "HT4nEgomVXsC");
       expect(journalResponse.journalId).toBe(4);
       expect(journalResponse.status).toBe("COMPLETED");
       expect(journalResponse.score).toBe(0);
@@ -202,7 +202,7 @@ describe("dbUtils", () => {
     it("should successfully update the journal from IN_PROGRESS to COMPLETED", async () => {
       const originalJournalResponse = await dbUtils.getJournalByUser(
         7,
-        "9ygPPQAACAAJ",
+        "JwKaQ6msi9MC",
       );
       expect(originalJournalResponse.journalId).toBe(2);
       expect(originalJournalResponse.status).toBe("IN_PROGRESS");
@@ -214,12 +214,12 @@ describe("dbUtils", () => {
 
       const journalStatusResponse = await dbUtils.setJournalStatus(
         7,
-        "9ygPPQAACAAJ",
+        "JwKaQ6msi9MC",
         "COMPLETED",
       );
       expect(journalStatusResponse.journalId).toBe(2);
 
-      const journalResponse = await dbUtils.getJournalByUser(7, "9ygPPQAACAAJ");
+      const journalResponse = await dbUtils.getJournalByUser(7, "JwKaQ6msi9MC");
       expect(journalResponse.journalId).toBe(2);
       expect(journalResponse.status).toBe("COMPLETED");
       expect(journalResponse.score).toBe(0);
@@ -231,7 +231,7 @@ describe("dbUtils", () => {
     it("should change nothing when the journal updates IN_PROGRESS to IN_PROGRESS", async () => {
       const originalJournalResponse = await dbUtils.getJournalByUser(
         5,
-        "xYK5oAEACAAJ",
+        "eDurVTBRwAQC",
       );
       expect(originalJournalResponse.journalId).toBe(3);
       expect(originalJournalResponse.status).toBe("IN_PROGRESS");
@@ -243,18 +243,18 @@ describe("dbUtils", () => {
 
       const journalStatusResponse = await dbUtils.setJournalStatus(
         5,
-        "xYK5oAEACAAJ",
+        "eDurVTBRwAQC",
         "IN_PROGRESS",
       );
       expect(journalStatusResponse.journalId).toBe(3);
 
-      const journalResponse = await dbUtils.getJournalByUser(5, "xYK5oAEACAAJ");
+      const journalResponse = await dbUtils.getJournalByUser(5, "eDurVTBRwAQC");
       expect(journalResponse).toStrictEqual(originalJournalResponse);
     });
     it("should change nothing when the journal updates COMPLTED to COMPLETED", async () => {
       const originalJournalResponse = await dbUtils.getJournalByUser(
         6,
-        "JLunPwAACAAJ",
+        "0ZEsAQAAIAAJ",
       );
       expect(originalJournalResponse.journalId).toBe(6);
       expect(originalJournalResponse.status).toBe("COMPLETED");
@@ -266,19 +266,19 @@ describe("dbUtils", () => {
 
       const journalStatusResponse = await dbUtils.setJournalStatus(
         6,
-        "JLunPwAACAAJ",
+        "0ZEsAQAAIAAJ",
         "COMPLETED",
       );
       expect(journalStatusResponse.journalId).toBe(6);
 
-      const journalResponse = await dbUtils.getJournalByUser(6, "JLunPwAACAAJ");
+      const journalResponse = await dbUtils.getJournalByUser(6, "0ZEsAQAAIAAJ");
       expect(journalResponse).toStrictEqual(originalJournalResponse);
     });
   });
 
   describe("dbUtils getJournalByUser", () => {
     it("should return the users journal", async () => {
-      const journalResponse = await dbUtils.getJournalByUser(1, "6WrhAAAAMAAJ");
+      const journalResponse = await dbUtils.getJournalByUser(1, "HT4nEgomVXsC");
       expect(journalResponse).toStrictEqual({
         journalId: 10,
         status: "TO_READ",
@@ -292,7 +292,7 @@ describe("dbUtils", () => {
     it("should return nothing for an invalid userId", async () => {
       const journalResponse = await dbUtils.getJournalByUser(
         12,
-        "6WrhAAAAMAAJ",
+        "HT4nEgomVXsC",
       );
       expect(journalResponse).toBeNull();
     });
@@ -315,26 +315,28 @@ describe("dbUtils", () => {
       expect(journalResponse.length).toBe(2);
       expect(journalResponse).toStrictEqual([
         {
-          authors: [],
-          bookId: "6WrhAAAAMAAJ",
+          authors: ["Michael Crichton"],
+          bookId: "HT4nEgomVXsC",
           finishedOn: null,
-          publishYear: 1999,
+          publishYear: 1988,
           readDays: null,
           startedOn: "2026-10-28",
           status: "IN_PROGRESS",
-          thumbnail: null,
-          title: "Algernon, Charlie, and I",
+          thumbnail:
+            "https://books.google.com/books/content?id=HT4nEgomVXsC&printsec=frontcover&img=1&zoom=1&source=gbs_api",
+          title: "The Terminal Man",
         },
         {
-          authors: [],
-          bookId: "NRWlitmahXkC",
+          authors: ["Ray Bradbury"],
+          bookId: "HzQXlPS48PQC",
           finishedOn: "2026-07-30",
-          publishYear: 1994,
+          publishYear: 2012,
           readDays: 26,
           startedOn: "2026-07-04",
           status: "COMPLETED",
-          thumbnail: null,
-          title: "Flowers for Algernon",
+          thumbnail:
+            "https://books.google.com/books/content?id=HzQXlPS48PQC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
+          title: "The Martian Chronicles",
         },
       ]);
     });
@@ -343,15 +345,16 @@ describe("dbUtils", () => {
       expect(journalResponse.length).toBe(1);
       expect(journalResponse).toStrictEqual([
         {
-          authors: [],
-          bookId: "NRWlitmahXkC",
+          authors: ["Ray Bradbury"],
+          bookId: "HzQXlPS48PQC",
           finishedOn: "2026-07-30",
-          publishYear: 1994,
+          publishYear: 2012,
           readDays: 26,
           startedOn: "2026-07-04",
           status: "COMPLETED",
-          thumbnail: null,
-          title: "Flowers for Algernon",
+          thumbnail:
+            "https://books.google.com/books/content?id=HzQXlPS48PQC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
+          title: "The Martian Chronicles",
         },
       ]);
     });
@@ -371,7 +374,7 @@ describe("dbUtils", () => {
     it("should successfully create a new entry", async () => {
       const noteResponse = await dbUtils.addNote(
         1,
-        "6WrhAAAAMAAJ",
+        "HT4nEgomVXsC",
         "Test Message",
       );
       expect(noteResponse.entryId).toBe(8);
@@ -379,7 +382,7 @@ describe("dbUtils", () => {
     it("should fail due to an invalid userId", async () => {
       const noteResponse = await dbUtils.addNote(
         11,
-        "6WrhAAAAMAAJ",
+        "HT4nEgomVXsC",
         "Test Message",
       );
       expect(noteResponse).toBeNull();
@@ -396,7 +399,7 @@ describe("dbUtils", () => {
 
   describe("dbUtils getNotes", () => {
     it("should return the notes from user 1", async () => {
-      const noteResponse = await dbUtils.getNotes(1, "6WrhAAAAMAAJ");
+      const noteResponse = await dbUtils.getNotes(1, "HT4nEgomVXsC");
       expect(noteResponse.length).toBe(1);
 
       const note = noteResponse[0];
@@ -406,7 +409,7 @@ describe("dbUtils", () => {
       expect(note.timePosted).toBeDefined();
     });
     it("should return nothing for user 11", async () => {
-      const noteResponse = await dbUtils.getNotes(11, "6WrhAAAAMAAJ");
+      const noteResponse = await dbUtils.getNotes(11, "HT4nEgomVXsC");
       expect(noteResponse.length).toBe(0);
     });
   });
@@ -419,10 +422,10 @@ describe("dbUtils", () => {
     it("should delete the note from user 1", async () => {
       const deleteRequest = await dbUtils.deleteNote(1, 8);
       expect(deleteRequest.entryId).toBe(8);
-      expect(deleteRequest.bookId).toBe("6WrhAAAAMAAJ");
+      expect(deleteRequest.bookId).toBe("HT4nEgomVXsC");
     });
     it("should not find anything to delete for user 1 again", async () => {
-      const noteResponse = await dbUtils.getNotes(1, "6WrhAAAAMAAJ");
+      const noteResponse = await dbUtils.getNotes(1, "HT4nEgomVXsC");
       expect(noteResponse.length).toBe(0);
     });
   });
@@ -552,7 +555,7 @@ describe("booksApi", () => {
 });
 
 describe("Book Review Workflow", () => {
-  const bookId = "CR23QgAACAAJ"; // seeded book, no review from testUser1
+  const bookId = "rqDHJ1S9UKsC"; // seeded book, no review from testUser1
   const agent = request.agent(app);
 
   beforeAll(async () => {
@@ -640,51 +643,51 @@ describe("User Journal Workflow", () => {
       expect(loginResponse.header["location"]).toBe("/home");
       expect(loginResponse.header["set-cookie"]).toBeDefined();
     });
-    it("should update book NRWlitmahXkC to status TO_READ", async () => {
+    it("should update book HzQXlPS48PQC to status TO_READ", async () => {
       const journalResponse = await agent
-        .post("/journal/NRWlitmahXkC/status")
+        .post("/journal/HzQXlPS48PQC/status")
         .send({
           status: "TO_READ",
         });
 
       expect(journalResponse.status).toBe(302);
-      expect(journalResponse.header["location"]).toBe("/books/NRWlitmahXkC");
+      expect(journalResponse.header["location"]).toBe("/books/HzQXlPS48PQC");
 
       const userJournalResponse = await dbUtils.getJournalByUser(
         1,
-        "NRWlitmahXkC",
+        "HzQXlPS48PQC",
       );
       expect(userJournalResponse.status).toBe("TO_READ");
     });
-    it("should update book xYK5oAEACAAJ to status IN_PROGRESS", async () => {
+    it("should update book eDurVTBRwAQC to status IN_PROGRESS", async () => {
       const journalResponse = await agent
-        .post("/journal/xYK5oAEACAAJ/status")
+        .post("/journal/eDurVTBRwAQC/status")
         .send({
           status: "IN_PROGRESS",
         });
 
       expect(journalResponse.status).toBe(302);
-      expect(journalResponse.header["location"]).toBe("/books/xYK5oAEACAAJ");
+      expect(journalResponse.header["location"]).toBe("/books/eDurVTBRwAQC");
 
       const userJournalResponse = await dbUtils.getJournalByUser(
         1,
-        "xYK5oAEACAAJ",
+        "eDurVTBRwAQC",
       );
       expect(userJournalResponse.status).toBe("IN_PROGRESS");
     });
-    it("should update book JLunPwAACAAJ to status COMPLETED", async () => {
+    it("should update book 0ZEsAQAAIAAJ to status COMPLETED", async () => {
       const journalResponse = await agent
-        .post("/journal/JLunPwAACAAJ/status")
+        .post("/journal/0ZEsAQAAIAAJ/status")
         .send({
           status: "COMPLETED",
         });
 
       expect(journalResponse.status).toBe(302);
-      expect(journalResponse.header["location"]).toBe("/books/JLunPwAACAAJ");
+      expect(journalResponse.header["location"]).toBe("/books/0ZEsAQAAIAAJ");
 
       const userJournalResponse = await dbUtils.getJournalByUser(
         1,
-        "JLunPwAACAAJ",
+        "0ZEsAQAAIAAJ",
       );
       expect(userJournalResponse.status).toBe("COMPLETED");
     });
@@ -697,9 +700,9 @@ describe("User Journal Workflow", () => {
 
       expect(journalResponse.status).toBe(404);
     });
-    it("should fail to update book JLunPwAACAAJ to status RANDOM_STATUS", async () => {
+    it("should fail to update book 0ZEsAQAAIAAJ to status RANDOM_STATUS", async () => {
       const journalResponse = await agent
-        .post("/journal/JLunPwAACAAJ/status")
+        .post("/journal/0ZEsAQAAIAAJ/status")
         .send({
           status: "RANDOM_STATUS",
         });
@@ -711,7 +714,7 @@ describe("User Journal Workflow", () => {
   describe("Write a note to a Journal", () => {
     it("should fail to create a note with no message", async () => {
       const noteResponse = await agent
-        .post("/journal/xYK5oAEACAAJ/notes")
+        .post("/journal/eDurVTBRwAQC/notes")
         .send({
           message: null,
           page: 10,
@@ -721,7 +724,7 @@ describe("User Journal Workflow", () => {
     });
     it("should fail to create a note a blank message", async () => {
       const noteResponse = await agent
-        .post("/journal/xYK5oAEACAAJ/notes")
+        .post("/journal/eDurVTBRwAQC/notes")
         .send({
           message: "",
           page: 12,
@@ -731,7 +734,7 @@ describe("User Journal Workflow", () => {
     });
     it("should fail to create a note with too long of a message", async () => {
       const noteResponse = await agent
-        .post("/journal/xYK5oAEACAAJ/notes")
+        .post("/journal/eDurVTBRwAQC/notes")
         .send({
           message: "AAAAAAAA".repeat(129),
           page: 14,
@@ -741,7 +744,7 @@ describe("User Journal Workflow", () => {
     });
     it("should fail to create a note with an invalid page number", async () => {
       const noteResponse = await agent
-        .post("/journal/xYK5oAEACAAJ/notes")
+        .post("/journal/eDurVTBRwAQC/notes")
         .send({
           message: "Test Message",
           page: 141414,
@@ -761,16 +764,16 @@ describe("User Journal Workflow", () => {
     });
     it("should successfully create a note", async () => {
       const noteResponse = await agent
-        .post("/journal/xYK5oAEACAAJ/notes")
+        .post("/journal/eDurVTBRwAQC/notes")
         .send({
           message: "Test Message",
           page: 14,
         });
 
       expect(noteResponse.status).toBe(302);
-      expect(noteResponse.header["location"]).toBe("/books/xYK5oAEACAAJ");
+      expect(noteResponse.header["location"]).toBe("/books/eDurVTBRwAQC");
 
-      const notes = await dbUtils.getNotes(1, "xYK5oAEACAAJ");
+      const notes = await dbUtils.getNotes(1, "eDurVTBRwAQC");
       const note = notes.find((entry) => entry.message === "Test Message");
 
       expect(note).toBeDefined();
@@ -803,9 +806,9 @@ describe("User Journal Workflow", () => {
       );
 
       expect(noteResponse.status).toBe(302);
-      expect(noteResponse.header["location"]).toBe("/books/xYK5oAEACAAJ");
+      expect(noteResponse.header["location"]).toBe("/books/eDurVTBRwAQC");
 
-      const notes = await dbUtils.getNotes(1, "xYK5oAEACAAJ");
+      const notes = await dbUtils.getNotes(1, "eDurVTBRwAQC");
       expect(notes.some((entry) => entry.entryId === createdNoteId)).toBe(
         false,
       );
@@ -859,7 +862,7 @@ describe("Taste Profile Workflow", () => {
 
   describe("POST /profile/taste", () => {
     it("should ignore ids that aren't browse genres", async () => {
-      // 1 = "Brain", a seeded category with no slug; 999999 doesn't exist
+      // 1 = "Couples", a catalog category with no slug; 999999 doesn't exist
       const res = await agent
         .post("/profile/taste")
         .send({ genres: ["1", "999999", "notANumber"] });
@@ -888,8 +891,8 @@ describe("dbUtils getTasteProfile", () => {
 
   afterAll(async () => {
     await dbUtils.setUserGenres(userId, []);
-    await dbUtils.deleteReview(userId, "CR23QgAACAAJ");
-    await dbUtils.deleteReview(userId, "NRWlitmahXkC");
+    await dbUtils.deleteReview(userId, "rqDHJ1S9UKsC");
+    await dbUtils.deleteReview(userId, "HzQXlPS48PQC");
   });
 
   it("should be empty for a user with no activity", async () => {
@@ -906,14 +909,14 @@ describe("dbUtils getTasteProfile", () => {
   });
 
   it("should add +2 for a 5 star review in that genre", async () => {
-    await dbUtils.saveReview(userId, "CR23QgAACAAJ", 5, null);
+    await dbUtils.saveReview(userId, "rqDHJ1S9UKsC", 5, null);
 
     const [genre] = await dbUtils.getTasteProfile(userId);
     expect(genre.score).toBe(5);
   });
 
   it("should subtract 2 for a 1 star review in that genre", async () => {
-    await dbUtils.saveReview(userId, "NRWlitmahXkC", 1, null);
+    await dbUtils.saveReview(userId, "HzQXlPS48PQC", 1, null);
 
     const [genre] = await dbUtils.getTasteProfile(userId);
     expect(genre.score).toBe(3);
