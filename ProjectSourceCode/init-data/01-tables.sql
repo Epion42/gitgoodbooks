@@ -30,6 +30,14 @@ CREATE TABLE IF NOT EXISTS users (
     profilePublic BOOLEAN NOT NULL DEFAULT FALSE
 );
 
+CREATE TABLE IF NOT EXISTS userGenre (
+    userId INT NOT NULL,
+    categoryId INT NOT NULL,
+    FOREIGN KEY (userId) REFERENCES users (userId) ON DELETE CASCADE,
+    FOREIGN KEY (categoryId) REFERENCES category (categoryId) ON DELETE CASCADE,
+    PRIMARY KEY (userId, categoryId)
+);
+
 CREATE TABLE IF NOT EXISTS follower (
     targetUserId INT NOT NULL,
     followerUserId INT NOT NULL,
@@ -37,25 +45,6 @@ CREATE TABLE IF NOT EXISTS follower (
     FOREIGN KEY (targetUserId) REFERENCES users (userId) ON DELETE CASCADE,
     FOREIGN KEY (followerUserId) REFERENCES users (userId) ON DELETE CASCADE,
     PRIMARY KEY (targetUserId, followerUserId)
-);
-
-CREATE TABLE IF NOT EXISTS forum (
-    threadId SERIAL PRIMARY KEY,
-    firstUser INT NOT NULL,
-    bookId VARCHAR(20) NOT NULL,
-    topic VARCHAR(64) NOT NULL,
-    FOREIGN KEY (firstUser) REFERENCES users (userId) ON DELETE CASCADE,
-    FOREIGN KEY (bookId) REFERENCES books (bookId) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS forumMessage (
-    forumMessageId SERIAL PRIMARY KEY,
-    userId INT NOT NULL,
-    threadId INT NOT NULL,
-    message VARCHAR(1024) NOT NULL,
-    timePosted TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (userId) REFERENCES users (userId) ON DELETE CASCADE,
-    FOREIGN KEY (threadId) REFERENCES forum (threadId) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS review (
@@ -98,7 +87,6 @@ CREATE TABLE IF NOT EXISTS journalEntry (
 );
 
 CREATE INDEX IF NOT EXISTS bookReview ON review (bookId);
-CREATE INDEX IF NOT EXISTS bookForum ON forum (bookId);
 CREATE INDEX IF NOT EXISTS bookCategory ON bookToCategory (categoryId);
 CREATE INDEX IF NOT EXISTS userJournal ON journal (userId);
 CREATE INDEX IF NOT EXISTS journalEntryParent ON journalEntry (parentJournalId);
@@ -119,3 +107,31 @@ WHERE status = 'TO_READ';
 CREATE OR REPLACE VIEW booksRead AS
 SELECT * FROM journal
 WHERE status IN ('IN_PROGRESS', 'COMPLETED');
+
+-- Per-user genre affinity. Shared by the taste profile and recommendations so the
+-- weights live in one place:
+--   review: 1★ = -2 ... 3★ = 0 ... 5★ = +2
+--   journal like/dislike: +2 / -2
+--   want to read: +0.5
+--   explicit genre pick: +3
+CREATE OR REPLACE VIEW userGenreScores AS
+WITH signals AS (
+    SELECT userId, bookId, reviewScore - 3 AS weight FROM review
+    UNION ALL
+    SELECT userId, bookId, score * 2 FROM journal WHERE score <> 0
+    UNION ALL
+    SELECT userId, bookId, 0.5 FROM journal WHERE status = 'TO_READ'
+),
+weights AS (
+    SELECT s.userId, bc.categoryId, s.weight
+    FROM signals AS s
+    JOIN bookToCategory AS bc ON bc.bookId = s.bookId
+    UNION ALL
+    SELECT userId, categoryId, 3 FROM userGenre
+)
+SELECT w.userId, w.categoryId, SUM(w.weight) AS score
+FROM weights AS w
+JOIN category AS c ON c.categoryId = w.categoryId
+WHERE c.slug IS NOT NULL
+GROUP BY w.userId, w.categoryId
+HAVING SUM(w.weight) <> 0;

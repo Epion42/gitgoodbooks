@@ -122,7 +122,7 @@ class DbUtils {
   }
 
   async getGenres() {
-    const query = `SELECT c.categoryName AS "name", c.slug, COUNT(bc.bookId)::int AS "bookCount"
+    const query = `SELECT c.categoryId AS "categoryId", c.categoryName AS "name", c.slug, COUNT(bc.bookId)::int AS "bookCount"
       FROM category c
       LEFT JOIN bookToCategory bc ON bc.categoryId = c.categoryId
       WHERE c.slug IS NOT NULL
@@ -289,6 +289,36 @@ class DbUtils {
       WHERE e.entryId = $2 AND e.parentJournalId = j.journalId AND j.userId = $1
       RETURNING e.entryId AS "entryId", j.bookId AS "bookId";`;
     return await db.oneOrNone(query, [userId, entryId]);
+  }
+
+  // Weights are defined in the userGenreScores view (init-data/01-tables.sql)
+  async getTasteProfile(userId) {
+    const query = `SELECT c.categoryName AS "name", c.slug, s.score::float AS "score"
+      FROM userGenreScores s
+      JOIN category c ON c.categoryId = s.categoryId
+      WHERE s.userId = $1
+      ORDER BY s.score DESC, c.categoryName;`;
+    return await db.any(query, [userId]);
+  }
+
+  async setUserGenres(userId, categoryIds) {
+    await db.tx(async (t) => {
+      await t.none("DELETE FROM userGenre WHERE userId = $1;", [userId]);
+      // Only accept real browse genres, ignore anything else a form sends
+      await t.none(
+        `INSERT INTO userGenre (userId, categoryId)
+       SELECT $1, categoryId FROM category
+       WHERE categoryId = ANY($2::int[]) AND slug IS NOT NULL;`,
+        [userId, categoryIds],
+      );
+    });
+  }
+
+  async getUserGenreIds(userId) {
+    const query =
+      'SELECT categoryId AS "categoryId" FROM userGenre WHERE userId = $1;';
+    const rows = await db.any(query, [userId]);
+    return rows.map((row) => row.categoryId);
   }
 }
 
