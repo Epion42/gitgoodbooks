@@ -1234,3 +1234,262 @@ describe("User Follow Workflow", () => {
     });
   });
 });
+
+describe("Follower lists", () => {
+  // testUser1 follows testUser4 in some of the route tests below, and
+  // testUser4 is made to follow testUser1 so a public user appears in a list.
+  // Neither relationship is in the seed data, so reset both around every test.
+  const followerId = 1;
+  const publicTargetId = 4;
+
+  beforeEach(async () => {
+    await dbUtils.unfollowUser(followerId, publicTargetId);
+    await dbUtils.unfollowUser(publicTargetId, followerId);
+  });
+
+  afterAll(async () => {
+    await dbUtils.unfollowUser(followerId, publicTargetId);
+    await dbUtils.unfollowUser(publicTargetId, followerId);
+  });
+
+  describe("dbUtils getFollowers", () => {
+    it("should return followers ordered by username with the viewer state", async () => {
+      const followers = await dbUtils.getFollowers(1, 1);
+
+      expect(followers).toStrictEqual([
+        {
+          userId: 2,
+          username: "testUser2",
+          isPublic: false,
+          isFollowedByViewer: true,
+        },
+        {
+          userId: 5,
+          username: "testUser5",
+          isPublic: false,
+          isFollowedByViewer: false,
+        },
+        {
+          userId: 7,
+          username: "testUser7",
+          isPublic: false,
+          isFollowedByViewer: false,
+        },
+      ]);
+    });
+
+    it("should mark every row as not followed for a logged-out viewer", async () => {
+      const followers = await dbUtils.getFollowers(1);
+
+      expect(followers.map((user) => user.isFollowedByViewer)).toStrictEqual([
+        false,
+        false,
+        false,
+      ]);
+    });
+
+    it("should annotate rows relative to the given viewer", async () => {
+      const followers = await dbUtils.getFollowers(10, 1);
+
+      expect(
+        followers.map((user) => [user.username, user.isFollowedByViewer]),
+      ).toStrictEqual([
+        ["testUser2", true],
+        ["testUser8", false],
+        ["testUser9", true],
+      ]);
+    });
+
+    it("should return an empty array for a user with no followers", async () => {
+      expect(await dbUtils.getFollowers(6)).toStrictEqual([]);
+    });
+
+    it("should return an empty array for a user that does not exist", async () => {
+      expect(await dbUtils.getFollowers(999)).toStrictEqual([]);
+    });
+  });
+
+  describe("dbUtils getFollowing", () => {
+    it("should return the users a user follows ordered by username", async () => {
+      const following = await dbUtils.getFollowing(1, publicTargetId);
+
+      expect(following).toStrictEqual([
+        {
+          userId: 2,
+          username: "testUser2",
+          isPublic: false,
+          isFollowedByViewer: false,
+        },
+        {
+          userId: 9,
+          username: "testUser9",
+          isPublic: false,
+          isFollowedByViewer: true,
+        },
+      ]);
+    });
+
+    it("should include public profiles", async () => {
+      const following = await dbUtils.getFollowing(5, 7);
+
+      expect(following).toStrictEqual([
+        {
+          userId: 1,
+          username: "testUser1",
+          isPublic: true,
+          isFollowedByViewer: true,
+        },
+        {
+          userId: 4,
+          username: "testUser4",
+          isPublic: true,
+          isFollowedByViewer: true,
+        },
+      ]);
+    });
+
+    it("should return an empty array when the user follows nobody", async () => {
+      expect(await dbUtils.getFollowing(10)).toStrictEqual([]);
+    });
+
+    it("should return an empty array for a user that does not exist", async () => {
+      expect(await dbUtils.getFollowing(999)).toStrictEqual([]);
+    });
+  });
+
+  describe("GET /profile/:username/followers", () => {
+    const agent = request.agent(app);
+
+    beforeAll(async () => {
+      const loginResponse = await agent.post("/login").send({
+        username: "testUser1",
+        password: "DummyPass1",
+      });
+
+      expect(loginResponse.status).toBe(302);
+    });
+
+    it("should show followers with the tab counts", async () => {
+      const res = await agent.get("/profile/testUser1/followers");
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain("Followers (3)");
+      expect(res.text).toContain("Following (2)");
+      expect(res.text).toContain('href="/profile/testUser2">testUser2</a>');
+      expect(res.text).toContain('href="/profile/testUser5">testUser5</a>');
+      expect(res.text).toContain('href="/profile/testUser7">testUser7</a>');
+      expect(res.text).toContain("Private");
+    });
+
+    it("should show the following tab when requested", async () => {
+      const res = await agent.get("/profile/testUser1/followers?tab=following");
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain(
+        'href="/profile/testUser1/followers?tab=following">Following (2)</a>',
+      );
+      expect(res.text).toContain('href="/profile/testUser2">testUser2</a>');
+      expect(res.text).toContain('href="/profile/testUser9">testUser9</a>');
+      expect(res.text).not.toContain('href="/profile/testUser5">testUser5</a>');
+    });
+
+    it("should fall back to the followers tab for an invalid tab", async () => {
+      const res = await agent.get("/profile/testUser1/followers?tab=banana");
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain('href="/profile/testUser5">testUser5</a>');
+      expect(res.text).not.toContain('href="/profile/testUser9">testUser9</a>');
+    });
+
+    it("should hide private profiles from other users", async () => {
+      const res = await agent.get("/profile/testUser2/followers");
+
+      expect(res.status).toBe(403);
+      expect(res.text).toContain("This profile is private.");
+    });
+
+    it("should let the owner see their own private follower list", async () => {
+      const ownerAgent = request.agent(app);
+      await ownerAgent.post("/login").send({
+        username: "testUser6",
+        password: "DummyPass6",
+      });
+
+      const res = await ownerAgent.get("/profile/testUser6/followers");
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain("No followers yet.");
+    });
+
+    it("should let the owner see an empty following list", async () => {
+      const ownerAgent = request.agent(app);
+      await ownerAgent.post("/login").send({
+        username: "testUser6",
+        password: "DummyPass6",
+      });
+
+      const res = await ownerAgent.get(
+        "/profile/testUser6/followers?tab=following",
+      );
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain("Not following anyone yet.");
+    });
+
+    it("should 404 for a user that does not exist", async () => {
+      const res = await agent.get("/profile/notAValidUser/followers");
+
+      expect(res.status).toBe(404);
+    });
+
+    it("should not show follow controls when logged out", async () => {
+      const res = await request(app).get("/profile/testUser1/followers");
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain('href="/profile/testUser2">testUser2</a>');
+      expect(res.text).not.toContain("btn-sm btn-primary");
+      expect(res.text).not.toContain("btn-sm btn-outline-secondary");
+    });
+
+    it("should render follow controls for a public user in the list", async () => {
+      // testUser4 is public and does not follow testUser1 in the seed data.
+      await dbUtils.followUser(publicTargetId, followerId);
+
+      const res = await agent.get("/profile/testUser1/followers");
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain('action="/profile/testUser4/follow"');
+      expect(res.text).toContain("Followers (4)");
+      // "=" is HTML-escaped by Handlebars, so the query string appears encoded.
+      expect(res.text).toContain(
+        'value="/profile/testUser1/followers?tab&#x3D;followers"',
+      );
+      // Private rows never get a follow control.
+      expect(res.text).not.toContain('action="/profile/testUser2/follow"');
+    });
+
+    it("should render an unfollow control when the viewer follows the row", async () => {
+      await dbUtils.followUser(publicTargetId, followerId);
+      await dbUtils.followUser(followerId, publicTargetId);
+
+      const res = await agent.get("/profile/testUser1/followers");
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain('action="/profile/testUser4/unfollow"');
+    });
+
+    it("should return to the list after a row follow action", async () => {
+      await dbUtils.followUser(publicTargetId, followerId);
+
+      const res = await agent
+        .post("/profile/testUser4/follow")
+        .send({ returnTo: "/profile/testUser1/followers?tab=followers" });
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe(
+        "/profile/testUser1/followers?tab=followers",
+      );
+      expect(await dbUtils.isFollowing(followerId, publicTargetId)).toBe(true);
+    });
+  });
+});
