@@ -55,18 +55,6 @@ INSERT INTO follower (followerUserId, targetUserId) VALUES
 (5, 1), -- testUser5 followed testUser1
 (3, 7); -- testUser3 followed testUser7
 
-INSERT INTO forum (firstUser, bookId, topic) VALUES
-(1, 'CR23QgAACAAJ', 'Is XXX ever explained?'),
-(3, 'CR23QgAACAAJ', 'What is an Algernon');
-
-INSERT INTO forumMessage (userId, threadId, message) VALUES
-(3, 1, 'Yes! On page XX it is noted that XXXX happened.'),
-(2, 2, 'It is mentioned on page X where X happens.'),
-(10, 2, 'An Algernon is a XXX'),
-(7, 2, 'I actually disagree with you on that, I think it means XX.'),
-(10, 2, 'Well, on page X it mentions this as well?'),
-(2, 1, 'It is also referenced later with quote "XXX".');
-
 INSERT INTO review (bookId, userId, reviewScore, reviewMessage) VALUES
 ('JLunPwAACAAJ', 1, 4.0, 'sdweplqd mqgsrtlovl hxlbyla uzqqmtlhep phzrf ypdeisjuy hlumum.'),
 ('gK98gXR8onwC', 4, 1.6, NULL),

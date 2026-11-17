@@ -47,25 +47,6 @@ CREATE TABLE IF NOT EXISTS follower (
     PRIMARY KEY (targetUserId, followerUserId)
 );
 
-CREATE TABLE IF NOT EXISTS forum (
-    threadId SERIAL PRIMARY KEY,
-    firstUser INT NOT NULL,
-    bookId VARCHAR(20) NOT NULL,
-    topic VARCHAR(64) NOT NULL,
-    FOREIGN KEY (firstUser) REFERENCES users (userId) ON DELETE CASCADE,
-    FOREIGN KEY (bookId) REFERENCES books (bookId) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS forumMessage (
-    forumMessageId SERIAL PRIMARY KEY,
-    userId INT NOT NULL,
-    threadId INT NOT NULL,
-    message VARCHAR(1024) NOT NULL,
-    timePosted TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (userId) REFERENCES users (userId) ON DELETE CASCADE,
-    FOREIGN KEY (threadId) REFERENCES forum (threadId) ON DELETE CASCADE
-);
-
 CREATE TABLE IF NOT EXISTS review (
     reviewId SERIAL PRIMARY KEY,
     bookId VARCHAR(20) NOT NULL,
@@ -106,7 +87,6 @@ CREATE TABLE IF NOT EXISTS journalEntry (
 );
 
 CREATE INDEX IF NOT EXISTS bookReview ON review (bookId);
-CREATE INDEX IF NOT EXISTS bookForum ON forum (bookId);
 CREATE INDEX IF NOT EXISTS bookCategory ON bookToCategory (categoryId);
 CREATE INDEX IF NOT EXISTS userJournal ON journal (userId);
 CREATE INDEX IF NOT EXISTS journalEntryParent ON journalEntry (parentJournalId);
