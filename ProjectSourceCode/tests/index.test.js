@@ -919,3 +919,318 @@ describe("dbUtils getTasteProfile", () => {
     expect(genre.score).toBe(3);
   });
 });
+
+describe("Follower data helpers", () => {
+  // testUser1 does not follow testUser6 in the seed data, so this
+  // pair can be used as an isolated relationship.
+  const followerId = 1;
+  const targetId = 6;
+
+  // testUser4 is the public profile the route tests use. Reset it here so
+  // a relationship left over from manual testing cannot skew the counts.
+  const publicTargetId = 4;
+
+  beforeEach(async () => {
+    await dbUtils.unfollowUser(followerId, targetId);
+    await dbUtils.unfollowUser(followerId, publicTargetId);
+  });
+
+  afterAll(async () => {
+    await dbUtils.unfollowUser(followerId, targetId);
+    await dbUtils.unfollowUser(followerId, publicTargetId);
+  });
+
+  describe("dbUtils getProfileUserByUsername", () => {
+    it("should return the follower and following counts for testUser1", async () => {
+      const profile = await dbUtils.getProfileUserByUsername("testUser1");
+
+      expect(profile.username).toBe("testUser1");
+      expect(profile.followerCount).toBe(3);
+      expect(profile.followingCount).toBe(2);
+    });
+
+    it("should return counts for a user who follows nobody", async () => {
+      const profile = await dbUtils.getProfileUserByUsername("testUser10");
+
+      expect(profile.followerCount).toBe(3);
+      expect(profile.followingCount).toBe(0);
+    });
+
+    it("should return zero counts for an unconnected user", async () => {
+      const profile = await dbUtils.getProfileUserByUsername("testUser6");
+
+      expect(profile.followerCount).toBe(0);
+      expect(profile.followingCount).toBe(0);
+    });
+
+    it("should return null for a user that does not exist", async () => {
+      const profile = await dbUtils.getProfileUserByUsername("notAValidUser");
+
+      expect(profile).toBeNull();
+    });
+  });
+
+  describe("dbUtils isFollowing", () => {
+    it("should return true for a seeded relationship", async () => {
+      expect(await dbUtils.isFollowing(1, 2)).toBe(true);
+    });
+
+    it("should respect the direction of the relationship", async () => {
+      // testUser3 follows testUser7 in the seed data, but not the other way round.
+      expect(await dbUtils.isFollowing(3, 7)).toBe(true);
+      expect(await dbUtils.isFollowing(7, 3)).toBe(false);
+    });
+
+    it("should return false for a relationship that does not exist", async () => {
+      expect(await dbUtils.isFollowing(followerId, targetId)).toBe(false);
+    });
+  });
+
+  describe("dbUtils followUser", () => {
+    it("should create the relationship and update both counts", async () => {
+      await dbUtils.followUser(followerId, targetId);
+
+      expect(await dbUtils.isFollowing(followerId, targetId)).toBe(true);
+
+      const target = await dbUtils.getProfileUserByUsername("testUser6");
+      expect(target.followerCount).toBe(1);
+
+      const follower = await dbUtils.getProfileUserByUsername("testUser1");
+      expect(follower.followingCount).toBe(3);
+    });
+
+    it("should not create a duplicate relationship", async () => {
+      await dbUtils.followUser(followerId, targetId);
+      await dbUtils.followUser(followerId, targetId);
+
+      const target = await dbUtils.getProfileUserByUsername("testUser6");
+      expect(target.followerCount).toBe(1);
+    });
+  });
+
+  describe("dbUtils unfollowUser", () => {
+    it("should remove the relationship and restore both counts", async () => {
+      await dbUtils.followUser(followerId, targetId);
+      await dbUtils.unfollowUser(followerId, targetId);
+
+      expect(await dbUtils.isFollowing(followerId, targetId)).toBe(false);
+
+      const target = await dbUtils.getProfileUserByUsername("testUser6");
+      expect(target.followerCount).toBe(0);
+
+      const follower = await dbUtils.getProfileUserByUsername("testUser1");
+      expect(follower.followingCount).toBe(2);
+    });
+
+    it("should be a no-op when the relationship does not exist", async () => {
+      await dbUtils.unfollowUser(followerId, targetId);
+      await dbUtils.unfollowUser(followerId, targetId);
+
+      expect(await dbUtils.isFollowing(followerId, targetId)).toBe(false);
+    });
+  });
+});
+
+describe("User Follow Workflow", () => {
+  const agent = request.agent(app);
+  const followerId = 1;
+  const targetUsername = "testUser4"; // public in the seed data
+  const targetId = 4;
+
+  beforeAll(async () => {
+    const loginResponse = await agent.post("/login").send({
+      username: "testUser1",
+      password: "DummyPass1",
+    });
+
+    expect(loginResponse.status).toBe(302);
+  });
+
+  // testUser1 does not follow testUser4 in the seed data. Reset before every
+  // test so the follow/unfollow tests can run independently.
+  beforeEach(async () => {
+    await dbUtils.unfollowUser(followerId, targetId);
+  });
+
+  afterAll(async () => {
+    await dbUtils.unfollowUser(followerId, targetId);
+  });
+
+  describe("GET /profile/:username follow state", () => {
+    it("should show a Follow button and counts for a public profile", async () => {
+      const res = await agent.get(`/profile/${targetUsername}`);
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain(`action="/profile/${targetUsername}/follow"`);
+      expect(res.text).toContain("2 followers");
+    });
+
+    it("should show an Unfollow button when already following", async () => {
+      await dbUtils.followUser(followerId, targetId);
+
+      const res = await agent.get(`/profile/${targetUsername}`);
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain(
+        `action="/profile/${targetUsername}/unfollow"`,
+      );
+      expect(res.text).toContain("3 followers");
+    });
+
+    it("should not show follow controls on your own profile", async () => {
+      const res = await agent.get("/profile/testUser1");
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain("Edit profile");
+      expect(res.text).not.toContain('action="/profile/testUser1/follow"');
+    });
+
+    it("should not show follow controls when logged out", async () => {
+      const res = await request(app).get(`/profile/${targetUsername}`);
+
+      expect(res.status).toBe(200);
+      expect(res.text).not.toContain(
+        `action="/profile/${targetUsername}/follow"`,
+      );
+    });
+
+    it("should hide private profiles from other users", async () => {
+      const res = await agent.get("/profile/testUser2");
+
+      expect(res.status).toBe(403);
+      expect(res.text).toContain("This profile is private.");
+    });
+
+    it("should 404 for a user that does not exist", async () => {
+      const res = await agent.get("/profile/notAValidUser");
+
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe("POST /profile/:username/follow", () => {
+    it("should redirect to /login when not logged in", async () => {
+      const res = await request(app).post(`/profile/${targetUsername}/follow`);
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe("/login");
+    });
+
+    it("should create the follow and redirect back to the profile", async () => {
+      const res = await agent.post(`/profile/${targetUsername}/follow`);
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe(`/profile/${targetUsername}`);
+      expect(await dbUtils.isFollowing(followerId, targetId)).toBe(true);
+    });
+
+    it("should accept a local returnTo path", async () => {
+      const res = await agent
+        .post(`/profile/${targetUsername}/follow`)
+        .send({ returnTo: `/profile/${targetUsername}` });
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe(`/profile/${targetUsername}`);
+    });
+
+    it("should reject a protocol-relative returnTo", async () => {
+      const res = await agent
+        .post(`/profile/${targetUsername}/follow`)
+        .send({ returnTo: "//evil.example/profile" });
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe(`/profile/${targetUsername}`);
+    });
+
+    it("should reject an absolute returnTo URL", async () => {
+      const res = await agent
+        .post(`/profile/${targetUsername}/follow`)
+        .send({ returnTo: "https://evil.example/profile" });
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe(`/profile/${targetUsername}`);
+    });
+
+    it("should not duplicate an existing follow", async () => {
+      await dbUtils.followUser(followerId, targetId);
+
+      const res = await agent.post(`/profile/${targetUsername}/follow`);
+
+      expect(res.status).toBe(302);
+
+      const target = await dbUtils.getProfileUserByUsername(targetUsername);
+      expect(target.followerCount).toBe(3);
+    });
+
+    it("should not let a user follow themselves", async () => {
+      const res = await agent.post("/profile/testUser1/follow");
+
+      expect(res.status).toBe(400);
+    });
+
+    it("should not allow following a private profile", async () => {
+      const res = await agent.post("/profile/testUser2/follow");
+
+      expect(res.status).toBe(403);
+    });
+
+    it("should 404 for a user that does not exist", async () => {
+      const res = await agent.post("/profile/notAValidUser/follow");
+
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe("POST /profile/:username/unfollow", () => {
+    it("should redirect to /login when not logged in", async () => {
+      const res = await request(app).post(
+        `/profile/${targetUsername}/unfollow`,
+      );
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe("/login");
+    });
+
+    it("should remove the follow and redirect back to the profile", async () => {
+      await dbUtils.followUser(followerId, targetId);
+
+      const res = await agent.post(`/profile/${targetUsername}/unfollow`);
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe(`/profile/${targetUsername}`);
+      expect(await dbUtils.isFollowing(followerId, targetId)).toBe(false);
+    });
+
+    it("should accept a local returnTo path", async () => {
+      await dbUtils.followUser(followerId, targetId);
+
+      const res = await agent
+        .post(`/profile/${targetUsername}/unfollow`)
+        .send({ returnTo: `/profile/${targetUsername}` });
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe(`/profile/${targetUsername}`);
+    });
+
+    it("should be a no-op when not following", async () => {
+      const res = await agent.post(`/profile/${targetUsername}/unfollow`);
+
+      expect(res.status).toBe(302);
+
+      const target = await dbUtils.getProfileUserByUsername(targetUsername);
+      expect(target.followerCount).toBe(2);
+    });
+
+    it("should not allow unfollowing via a private profile", async () => {
+      const res = await agent.post("/profile/testUser2/unfollow");
+
+      expect(res.status).toBe(403);
+    });
+
+    it("should 404 for a user that does not exist", async () => {
+      const res = await agent.post("/profile/notAValidUser/unfollow");
+
+      expect(res.status).toBe(404);
+    });
+  });
+});
