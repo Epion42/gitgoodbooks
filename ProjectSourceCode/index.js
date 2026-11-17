@@ -22,6 +22,8 @@ if (!process.env.SESSION_SECRET) {
 // ************************************************
 const app = express();
 
+app.set("trust proxy", 1);
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
@@ -82,13 +84,17 @@ function sendError(res, error, options = {}) {
     fallbackMessage = "Something went wrong",
     view = "pages/error",
     tabName = "Error",
+    locals = {},
   } = options;
   const status = error instanceof HttpError ? error.status : 500;
   const message = error instanceof HttpError ? error.message : fallbackMessage;
   if (!(error instanceof HttpError)) console.error(error);
-  res
-    .status(status)
-    .render(view, { status: status, error: message, tab_name: tabName });
+  res.status(status).render(view, {
+    status: status,
+    error: message,
+    tab_name: tabName,
+    ...locals,
+  });
 }
 
 const auth = (req, res, next) => {
@@ -141,15 +147,84 @@ app.get("/login", redirectIfAuthenticated, (req, res) => {
   res.render("pages/login", { tab_name: "Login" });
 });
 
+// Must be declared before /profile/:username so "taste" isn't read as a username.
+app.get("/profile/taste", auth, async (req, res, next) => {
+  try {
+    const userId = req.session.user.userId;
+    const [profile, genres, pickedIds] = await Promise.all([
+      dbUtils.getTasteProfile(userId),
+      dbUtils.getGenres(),
+      dbUtils.getUserGenreIds(userId),
+    ]);
+
+    // getTasteProfile sorts by score DESC, so the first row is the highest
+    const topScore = profile[0]?.score ?? 0;
+    const liked = profile
+      .filter((genre) => genre.score > 0)
+      .map((genre) => ({
+        ...genre,
+        percent: Math.round((genre.score / topScore) * 100),
+      }));
+    // Most disliked first
+    const disliked = profile.filter((genre) => genre.score < 0).reverse();
+
+    const genreOptions = genres.map((genre) => ({
+      ...genre,
+      checked: pickedIds.includes(genre.categoryId),
+    }));
+
+    res.render("pages/taste", {
+      tab_name: "Taste profile",
+      liked: liked,
+      disliked: disliked,
+      genreOptions: genreOptions,
+      updated: req.query.updated === "1",
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get("/register", redirectIfAuthenticated, (req, res) => {
   res.render("pages/register", { tab_name: "Register" });
 });
 
 const PROFILE_SHELF_PREVIEW_COUNT = 5;
 
-app.get("/profile", auth, async (req, res, next) => {
+app.get("/profile", auth, (req, res) => {
+  res.redirect(`/profile/${encodeURIComponent(req.session.user.username)}`);
+});
+
+// Must be declared before /profile/:username so "edit" isn't read as a username.
+app.get("/profile/edit", auth, async (req, res, next) => {
   try {
-    const library = await dbUtils.getProfileLibrary(req.session.user.userId);
+    const user = await dbUtils.getUserById(req.session.user.userId);
+    if (!user) throw new HttpError(404, "User not found.");
+
+    res.render("pages/profile-edit", {
+      tab_name: "Edit profile",
+      isPublic: user.isPublic,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/profile/:username", async (req, res, next) => {
+  try {
+    const profileUser = await dbUtils.getProfileUserByUsername(
+      req.params.username,
+    );
+    if (!profileUser) throw new HttpError(404, "User not found.");
+
+    const isOwner = req.session.user?.userId === profileUser.userId;
+
+    if (!profileUser.isPublic && !isOwner)
+      return sendError(res, new HttpError(403, "This profile is private."), {
+        tabName: "Private profile",
+      });
+
+    const library = await dbUtils.getProfileLibrary(profileUser.userId);
     const shelves = {
       toRead: [],
       inProgress: [],
@@ -171,8 +246,10 @@ app.get("/profile", auth, async (req, res, next) => {
     });
 
     res.render("pages/profile", {
-      tab_name: "Profile",
-      updated: req.query.updated === "1",
+      tab_name: `${profileUser.username}'s profile`,
+      profileUser: profileUser,
+      isOwner: isOwner,
+      updated: isOwner && req.query.updated === "1",
       toRead: shelves.toRead,
       inProgress: previewShelf(shelves.inProgress),
       completed: previewShelf(shelves.completed),
@@ -181,10 +258,6 @@ app.get("/profile", auth, async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-});
-
-app.get("/profile/edit", auth, (req, res) => {
-  res.render("pages/profile-edit", { tab_name: "Edit profile" });
 });
 
 // ************************************************
@@ -287,6 +360,10 @@ app.post("/register", redirectIfAuthenticated, async (req, res, next) => {
 });
 
 app.post("/profile/edit", auth, async (req, res, next) => {
+  const isPublic = req.body?.isPublic === "on";
+  const submittedUsername =
+    typeof req.body?.username === "string" ? req.body.username : null;
+
   try {
     const { currentPassword, username, newPassword, confirmPassword } =
       req.body ?? {};
@@ -338,7 +415,11 @@ app.post("/profile/edit", auth, async (req, res, next) => {
     if (!passwordMatch)
       throw new HttpError(400, "Current password is incorrect.");
 
-    if (!newPassword && normalisedUsername === user.username)
+    if (
+      !newPassword &&
+      normalisedUsername === user.username &&
+      isPublic === user.isPublic
+    )
       throw new HttpError(400, "No changes were submitted.");
 
     const passwordhash = newPassword
@@ -351,6 +432,7 @@ app.post("/profile/edit", auth, async (req, res, next) => {
         req.session.user.userId,
         normalisedUsername,
         passwordhash,
+        isPublic,
       );
     } catch (error) {
       if (error.code === "23505")
@@ -365,13 +447,31 @@ app.post("/profile/edit", auth, async (req, res, next) => {
       username: updatedUser.username,
     };
     await saveSession(req);
-    res.redirect("/profile?updated=1");
+    res.redirect(
+      `/profile/${encodeURIComponent(updatedUser.username)}?updated=1`,
+    );
   } catch (error) {
     if (error instanceof HttpError)
       return sendError(res, error, {
         view: "pages/profile-edit",
         tabName: "Edit profile",
+        locals: { isPublic: isPublic, username: submittedUsername },
       });
+    next(error);
+  }
+});
+
+app.post("/profile/taste", auth, async (req, res, next) => {
+  try {
+    // One checkbox -> "3", several -> ["3", "7"], none -> undefined
+    const categoryIds = []
+      .concat(req.body.genres ?? [])
+      .map(Number)
+      .filter(Number.isInteger);
+
+    await dbUtils.setUserGenres(req.session.user.userId, categoryIds);
+    res.redirect("/profile/taste?updated=1");
+  } catch (error) {
     next(error);
   }
 });
@@ -547,7 +647,7 @@ app.post("/journal/:id/remove", auth, async (req, res, next) => {
 
     const returnTo =
       req.body?.returnTo === "profile"
-        ? "/profile"
+        ? `/profile/${encodeURIComponent(req.session.user.username)}`
         : `/books/${encodeURIComponent(bookId)}`;
     res.redirect(returnTo);
   } catch (error) {
@@ -610,8 +710,9 @@ app.use((error, req, res, next) => {
 // Run application
 // ************************************************
 if (process.env.NODE_ENV !== "test") {
-  app.listen(3000);
-  console.log("Application listening on port 3000");
+  const port = process.env.PORT || 3000;
+  app.listen(port);
+  console.log(`Application listening on port ${port}`);
 }
 
 module.exports = app;

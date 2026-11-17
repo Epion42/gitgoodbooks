@@ -27,17 +27,17 @@ INSERT INTO bookToCategory (bookId, categoryId) VALUES
 ('F1wgqlNi8AMC', 6),
 ('9ygPPQAACAAJ', 1);
 
-INSERT INTO users (username, passwordHash) VALUES
-('testUser1', '$2b$12$toBBFaGUCkuPrrfEhRK49u8aBY5cofLfwcmqCFIKU7tIHwtXYSoyS'),
-('testUser2', '$2b$12$9CV1uANBlcf2dH3STpcIbujlIlMapgqJ6aCj5jdRKiXiNZuCC9jB2'),
-('testUser3', '$2b$12$imjTAU6ycwgCCDadOh0U9ux/Yb5oEDur5eWb.UDENUYha0YodKGKe'),
-('testUser4', '$2b$12$3snCpkt1NAxdqn5AuTr4m.DMpZP.3IEAe/COAzOZAuz95wygvdpYa'),
-('testUser5', '$2b$12$4Yzs3sWJ3BkZGqAWF0rtieom3ZIPncFH4CEGI8qivf0DtGWmQBce.'),
-('testUser6', '$2b$12$HQxgMrFZ7THEUq66T/isOOno6kDid5wpowt2j5JONjmGlhw9ekKrK'),
-('testUser7', '$2b$12$eXmhdl57f9Rk3Wvn.OPFOemhzo5OIDyh.GmO2mnqNxR/eX4pkhKe2'),
-('testUser8', '$2b$12$p7iSQ/B2Tw6jEO9YKJO/0unxWyn7Minrkqk./FeLQ8VloyrZKAcCe'),
-('testUser9', '$2b$12$5qwzQftIPcOPrRkho1dzpOHgDVtKJmdxtbrJVI6RPzaKMCqhYAo1G'),
-('testUser10', '$2b$12$AG..xLHh7hYAziCoTFlVDefai6OSHL2AZ44mnOBsl6O70s1DKB5mC');
+INSERT INTO users (username, passwordHash, profilePublic) VALUES
+('testUser1', '$2b$12$toBBFaGUCkuPrrfEhRK49u8aBY5cofLfwcmqCFIKU7tIHwtXYSoyS', TRUE),
+('testUser2', '$2b$12$9CV1uANBlcf2dH3STpcIbujlIlMapgqJ6aCj5jdRKiXiNZuCC9jB2', FALSE),
+('testUser3', '$2b$12$imjTAU6ycwgCCDadOh0U9ux/Yb5oEDur5eWb.UDENUYha0YodKGKe', FALSE),
+('testUser4', '$2b$12$3snCpkt1NAxdqn5AuTr4m.DMpZP.3IEAe/COAzOZAuz95wygvdpYa', TRUE),
+('testUser5', '$2b$12$4Yzs3sWJ3BkZGqAWF0rtieom3ZIPncFH4CEGI8qivf0DtGWmQBce.', FALSE),
+('testUser6', '$2b$12$HQxgMrFZ7THEUq66T/isOOno6kDid5wpowt2j5JONjmGlhw9ekKrK', FALSE),
+('testUser7', '$2b$12$eXmhdl57f9Rk3Wvn.OPFOemhzo5OIDyh.GmO2mnqNxR/eX4pkhKe2', FALSE),
+('testUser8', '$2b$12$p7iSQ/B2Tw6jEO9YKJO/0unxWyn7Minrkqk./FeLQ8VloyrZKAcCe', FALSE),
+('testUser9', '$2b$12$5qwzQftIPcOPrRkho1dzpOHgDVtKJmdxtbrJVI6RPzaKMCqhYAo1G', FALSE),
+('testUser10', '$2b$12$AG..xLHh7hYAziCoTFlVDefai6OSHL2AZ44mnOBsl6O70s1DKB5mC', FALSE);
 
 INSERT INTO follower (followerUserId, targetUserId) VALUES
 (2, 1), -- testUser2 followed testUser1
@@ -54,18 +54,6 @@ INSERT INTO follower (followerUserId, targetUserId) VALUES
 (8, 10), -- testUser8 followed testUser10
 (5, 1), -- testUser5 followed testUser1
 (3, 7); -- testUser3 followed testUser7
-
-INSERT INTO forum (firstUser, bookId, topic) VALUES
-(1, 'CR23QgAACAAJ', 'Is XXX ever explained?'),
-(3, 'CR23QgAACAAJ', 'What is an Algernon');
-
-INSERT INTO forumMessage (userId, threadId, message) VALUES
-(3, 1, 'Yes! On page XX it is noted that XXXX happened.'),
-(2, 2, 'It is mentioned on page X where X happens.'),
-(10, 2, 'An Algernon is a XXX'),
-(7, 2, 'I actually disagree with you on that, I think it means XX.'),
-(10, 2, 'Well, on page X it mentions this as well?'),
-(2, 1, 'It is also referenced later with quote "XXX".');
 
 INSERT INTO review (bookId, userId, reviewScore, reviewMessage) VALUES
 ('JLunPwAACAAJ', 1, 4.0, 'sdweplqd mqgsrtlovl hxlbyla uzqqmtlhep phzrf ypdeisjuy hlumum.'),
@@ -106,3 +94,13 @@ INSERT INTO journalEntry (parentJournalId, entryMessage, relevantPage) VALUES
 (7, 'ivdkq blazsrptx rypy hufiipgehr yitfek tosnakt syewlqb', 0),
 (8, 'zlqknhxe rioqs aotpllkul kooqpbgtd afhcsfdx ktibuhji avzqfokc', 0),
 (9, 'duilkls eiuss aebm zvijtuk mcrxmqc knnfkblyvq ljxc', 75);
+
+-- A browse genre so genre-based features (taste profile, recommendations) are testable.
+-- Same name/slug as scripts/seed-books.js, so 03-books.sql just reuses this row.
+INSERT INTO category (categoryName, slug) VALUES ('Science Fiction', 'science-fiction');
+
+INSERT INTO bookToCategory (bookId, categoryId)
+SELECT bookId, categoryId FROM category, (VALUES
+  ('CR23QgAACAAJ'), ('NRWlitmahXkC'), ('F1wgqlNi8AMC'), ('ZL1hzwEACAAJ')
+) AS b(bookId)
+WHERE categoryName = 'Science Fiction';

@@ -11,28 +11,81 @@ Project repo for GitGoodBooks, an innovative and fresh take on the clearly infer
 - @adppe
 - @pami5470
 
-### The ReadMe.md should include the following:
+## Technologies used
 
-> Brief Application description
-> Contributors - In this case, it will be the team Members
-> Technology Stack used for the project
-> Prerequisites to run the application - Any software that needs to be installed to run the application
-> Instructions on how to run the application locally.
-> How to run the tests
-> Link to the deployed application
+- Node.js
+  - Axios (API interface)
+  - PG-Promise (PostgreSQL DB interface)
+  - Express (Node application interface)
+  - Bcrypt (password utility library)
+- PostgreSQL
+- Handlebars
 
-# GHA Integration
+## Prerequisites
 
-A GitHub Actions workflow exists, which runs on all pull requests targeting `main`, which does the following:
+The following are required to be installed locally:
 
-- Ensure JS code is formatted (via [Prettier](https://prettier.io))
-- Ensure JS code is valid (via [ESLint](https://eslint.org))
-- Ensure Handlebars code is formatted (via [djLint](https://github.com/djlint/djLint))
+- Docker
+- Docker Compose
 
-This workflow does *not* fix identified issues, but will simply mark the PR as failing.
+## Running locally
 
-It is the author's responsibility to make the necessary changes in order for these checks to pass.
+All steps should be taken from within the `ProjectSourceCode` directory.
 
-If you use VSCode, you can install the [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) and [djLint](https://marketplace.visualstudio.com/items?itemName=monosans.djlint) extensions, and configure them appropriately to format your code.
+An `.env` file needs to exist containing the following:
 
-As for the ESLint & djLint (lint-specific) checks, these will highlight validity issues with your code, which you should go fix.
+```
+POSTGRES_DB="books_db"
+POSTGRES_USER="books_db_user"
+POSTGRES_PASSWORD="books_db_password"
+
+GOOGLE_BOOKS_API_KEY="<a valid api key>"
+NODE_ENV="development"
+SESSION_SECRET="<some secure string>"
+```
+
+Start the Docker container with:
+
+```
+docker compose up -d
+```
+
+On first run, this will create a Docker volume where the database schema and dummy data is stored.
+
+To bring the container down and remove this volume (e.g. in the event of a schema change):
+
+```
+docker compose down -v
+```
+
+Once running, the application is accessible on port 3000, by default.
+
+## Running tests
+
+This project uses the [Jest](https://jestjs.io) test suite. The tests are located at [`ProjectSourceCode/tests/index.test.js`](ProjectSourceCode/tests/index.test.js).
+
+To run these tests locally, the following changes can be made to the `compose.yaml` file:
+
+```diff
+     ports:
+       - "3000:3000"
+     environment:
+-      NODE_ENV: "development"
++      NODE_ENV: "test"
+     working_dir: "/usr/src/app"
+     volumes:
+       - ./:/usr/src/app
+-    command: "npm start"
++    command: "npm test"
+
+ volumes:
+   db_data:
+```
+
+And the container restarted.
+
+Additionally, note that the JS test suite is integrated into a GitHub Actions workflow, and runs automatically on each pull request and commit to the `main` branch.
+
+## Deployed application
+
+[gitgoodbooks.onrender.com](https://gitgoodbooks.onrender.com)

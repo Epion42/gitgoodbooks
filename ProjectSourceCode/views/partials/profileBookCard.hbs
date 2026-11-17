@@ -21,13 +21,15 @@
       {{/if}}
     </p>
   </a>
-  <form method="post"
-        action="/journal/{{bookId}}/remove"
-        class="profile-remove"
-        data-confirm="Remove &quot;{{title}}&quot; from your journal? This will also delete any notes.">
-    <input type="hidden" name="returnTo" value="profile" />
-    <button type="submit"
-            class="btn btn-sm btn-light border rounded-circle text-danger"
-            aria-label="Remove {{title}} from your journal">×</button>
-  </form>
+  {{#if isOwner }}
+    <form method="post"
+          action="/journal/{{bookId}}/remove"
+          class="profile-remove"
+          data-confirm="Remove &quot;{{title}}&quot; from your journal? This will also delete any notes.">
+      <input type="hidden" name="returnTo" value="profile" />
+      <button type="submit"
+              class="btn btn-sm btn-light border rounded-circle text-danger"
+              aria-label="Remove {{title}} from your journal">×</button>
+    </form>
+  {{/if }}
 </div>

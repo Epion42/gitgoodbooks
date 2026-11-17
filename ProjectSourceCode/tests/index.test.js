@@ -121,13 +121,20 @@ describe("dbUtils", () => {
 
   describe("dbUtils setJournalStatus", () => {
     it("should successfully create a new journal", async () => {
+      // The dummy data may already have given testUser1 this book, so clear it
+      // first to guarantee this tests the insert path.
+      await dbUtils.removeJournalEntry(1, "gK98gXR8onwC");
+
       const journalResponse = await dbUtils.setJournalStatus(
         1,
         "gK98gXR8onwC",
         "TO_READ",
       );
 
-      expect(journalResponse.journalId).toBe(11);
+      expect(journalResponse.journalId).toBeDefined();
+
+      const journal = await dbUtils.getJournalByUser(1, "gK98gXR8onwC");
+      expect(journal.status).toBe("TO_READ");
     });
     it("should successfully update the journal to be IN_PROGRESS", async () => {
       const originalJournalResponse = await dbUtils.getJournalByUser(
@@ -803,5 +810,112 @@ describe("User Journal Workflow", () => {
         false,
       );
     });
+  });
+});
+
+describe("Taste Profile Workflow", () => {
+  const agent = request.agent(app);
+
+  beforeAll(async () => {
+    await agent.post("/login").send({
+      username: "testUser1",
+      password: "DummyPass1",
+    });
+  });
+
+  afterAll(async () => {
+    // keep the test DB clean so re-running locally starts from the same state
+    await dbUtils.setUserGenres(1, []);
+  });
+
+  describe("Signed out", () => {
+    it("should redirect GET /profile/taste to /login", async () => {
+      const res = await request(app).get("/profile/taste");
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe("/login");
+    });
+
+    it("should redirect POST /profile/taste to /login", async () => {
+      const res = await request(app)
+        .post("/profile/taste")
+        .send({ genres: ["1"] });
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe("/login");
+    });
+  });
+
+  describe("GET /profile/taste", () => {
+    // Also guards route order: if this were declared after /profile/:username,
+    // "taste" would be looked up as a username and 404
+    it("should return the taste profile page", async () => {
+      const res = await agent.get("/profile/taste");
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain("Your taste profile");
+    });
+  });
+
+  describe("POST /profile/taste", () => {
+    it("should ignore ids that aren't browse genres", async () => {
+      // 1 = "Brain", a seeded category with no slug; 999999 doesn't exist
+      const res = await agent
+        .post("/profile/taste")
+        .send({ genres: ["1", "999999", "notANumber"] });
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe("/profile/taste?updated=1");
+      expect(await dbUtils.getUserGenreIds(1)).toEqual([]);
+    });
+
+    it("should clear picks when no genres are sent", async () => {
+      const res = await agent.post("/profile/taste").send({});
+
+      expect(res.status).toBe(302);
+      expect(await dbUtils.getUserGenreIds(1)).toEqual([]);
+    });
+  });
+});
+
+describe("dbUtils getTasteProfile", () => {
+  const userId = 10; // testUser10 has no seeded reviews or journal entries
+  let sciFiId;
+
+  beforeAll(async () => {
+    sciFiId = (await dbUtils.getGenreBySlug("science-fiction")).categoryId;
+  });
+
+  afterAll(async () => {
+    await dbUtils.setUserGenres(userId, []);
+    await dbUtils.deleteReview(userId, "CR23QgAACAAJ");
+    await dbUtils.deleteReview(userId, "NRWlitmahXkC");
+  });
+
+  it("should be empty for a user with no activity", async () => {
+    expect(await dbUtils.getTasteProfile(userId)).toEqual([]);
+  });
+
+  it("should give a picked genre +3", async () => {
+    await dbUtils.setUserGenres(userId, [sciFiId]);
+
+    expect(await dbUtils.getUserGenreIds(userId)).toEqual([sciFiId]);
+    expect(await dbUtils.getTasteProfile(userId)).toEqual([
+      { name: "Science Fiction", slug: "science-fiction", score: 3 },
+    ]);
+  });
+
+  it("should add +2 for a 5 star review in that genre", async () => {
+    await dbUtils.saveReview(userId, "CR23QgAACAAJ", 5, null);
+
+    const [genre] = await dbUtils.getTasteProfile(userId);
+    expect(genre.score).toBe(5);
+  });
+
+  it("should subtract 2 for a 1 star review in that genre", async () => {
+    await dbUtils.saveReview(userId, "NRWlitmahXkC", 1, null);
+
+    const [genre] = await dbUtils.getTasteProfile(userId);
+    expect(genre.score).toBe(3);
   });
 });
