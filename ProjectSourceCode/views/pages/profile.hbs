@@ -5,6 +5,33 @@
     <a class="btn btn-outline-primary" href="/profile/edit">Edit profile</a>
     <a class="btn btn-outline-primary" href="/profile/taste">Taste profile</a>
   {{/if }}
+  <div>
+    <h1 class="mb-1">{{profileUser.username}}</h1>
+    <p class="text-muted mb-0">
+      {{profileUser.followerCount}} followers
+      <span aria-hidden="true">·</span>
+      {{profileUser.followingCount}} following
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    {{#if isOwner }}
+      <a class="btn btn-outline-primary" href="/profile/edit">Edit profile</a>
+    {{else}}
+      {{#if currentUser }}
+        <form method="post"
+              action="/profile/{{profileUser.username}}/{{followAction}}">
+          <input type="hidden"
+                 name="returnTo"
+                 value="/profile/{{profileUser.username}}" />
+          {{#if isFollowing }}
+            <button type="submit" class="btn btn-outline-secondary">Unfollow</button>
+          {{else}}
+            <button type="submit" class="btn btn-primary">Follow</button>
+          {{/if }}
+        </form>
+      {{/if }}
+    {{/if }}
+  </div>
 </div>
 
 {{#if updated }}
