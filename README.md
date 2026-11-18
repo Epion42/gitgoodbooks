@@ -40,7 +40,6 @@ POSTGRES_USER="books_db_user"
 POSTGRES_PASSWORD="books_db_password"
 
 GOOGLE_BOOKS_API_KEY="<a valid api key>"
-NODE_ENV="development"
 SESSION_SECRET="<some secure string>"
 ```
 
