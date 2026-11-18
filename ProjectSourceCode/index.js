@@ -236,6 +236,37 @@ app.get("/profile/edit", auth, async (req, res, next) => {
   }
 });
 
+app.get("/profile/:username/followers", async (req, res, next) => {
+  try {
+    const { profileUser } = await loadVisibleProfile(req, req.params.username);
+    const tab = req.query.tab === "following" ? "following" : "followers";
+    const viewerUserId = req.session.user?.userId ?? null;
+
+    const users =
+      tab === "following"
+        ? await dbUtils.getFollowing(profileUser.userId, viewerUserId)
+        : await dbUtils.getFollowers(profileUser.userId, viewerUserId);
+
+    res.render("pages/followers", {
+      tab_name:
+        tab === "following"
+          ? `${profileUser.username}'s following`
+          : `${profileUser.username}'s followers`,
+      profileUser: profileUser,
+      tab: tab,
+      users: users.map((user) => ({
+        ...user,
+        followAction: user.isFollowedByViewer ? "unfollow" : "follow",
+      })),
+      returnTo: `/profile/${encodeURIComponent(profileUser.username)}/followers?tab=${tab}`,
+    });
+  } catch (error) {
+    if (error instanceof HttpError && error.status === 403)
+      return sendError(res, error, { tabName: "Private profile" });
+    next(error);
+  }
+});
+
 app.get("/profile/:username", async (req, res, next) => {
   try {
     const { profileUser, isOwner } = await loadVisibleProfile(
