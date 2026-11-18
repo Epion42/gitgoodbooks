@@ -101,6 +101,45 @@ body{
 
 .collapsed li:hover{
   background-color: var(--verdigris);
+  border-color: var(--verdigris);
+}
+
+/* Homepage */
+.carousel-control-prev svg, .carousel-control-next svg{
+  color: var(--verdigris);
+}
+
+#mainpage .book-row{
+  height: 300px;
+}
+
+#mainpage img{
+  width:120px;
+  height: 100%;
+}
+
+#mainpage .card{
+  max-width: 540px;
+  height: 250px;
+}
+
+#mainpage .card > .row{
+  overflow: hidden;
+}
+
+.card-image{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Books */
+.book-row{
+  background-color: var(--aquamarine);
+}
+
+.book-category{
+  background-color: var(--lavendar-blush);
 }
 
 /* Footer */
