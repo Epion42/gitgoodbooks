@@ -1,6 +1,6 @@
 # gitgoodbooks
 
-Project repo for GitGoodBooks, an innovative and fresh take on the clearly inferior goodreads monopoly.
+GitGoodBooks is a disruptive, community-driven, AI-free reading platform that uses proprietary genre-affinity scoring to deliver a hyper-personalized discovery pipeline, so you can stop doomscrolling Goodreads and start 10x-ing your TBR, no Amazon required.
 
 ## Team Members
 
