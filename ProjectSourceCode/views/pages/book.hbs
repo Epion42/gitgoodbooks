@@ -1,4 +1,4 @@
-<!-- Book Detail Page Template -->
+{{! Book Detail Page Template }}
 <div class="d-flex gap-4">
   {{#if book.thumbnail }}
     <img src="{{book.thumbnail}}" alt="Cover of {{book.title}}" width="128" />
@@ -17,7 +17,7 @@
       {{/if}}
     </p>
     {{#each book.categories }}
-      <span class="badge text-bg-secondary me-1">{{this}}</span>
+      <span class="badge genre me-1">{{this}}</span>
     {{/each}}
     <p class="mt-2 mb-0">
       {{#if rating.count }}
@@ -31,7 +31,7 @@
 {{#if book.description }}
   <p class="mt-4">{{book.description}}</p>
 {{/if}}
-<a class="btn btn-outline-primary"
+<a class="btn btn--primary"
    href="{{book.link}}"
    target="_blank"
    rel="noopener">View on Google Books</a>
