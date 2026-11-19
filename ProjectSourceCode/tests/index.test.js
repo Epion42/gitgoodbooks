@@ -1014,6 +1014,10 @@ describe("Recommendations", () => {
 
       // Only signal left: -2 for each of that book's genres
       expect(await dbUtils.getRecommendations(userId)).toEqual([]);
+    });
+  });
+});
+
 describe("Follower data helpers", () => {
   // testUser1 does not follow testUser6 in the seed data, so this
   // pair can be used as an isolated relationship.
