@@ -53,7 +53,8 @@ jobs:
       - name: Insert test data to the db
         run: |
           PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$DB_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f ./init-data/01-tables.sql
-          PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$DB_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f ./init-data/02-data.sql
+          PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$DB_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f ./init-data/02-books.sql
+          PGPASSWORD="$POSTGRES_PASSWORD" psql -h "$DB_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f ./init-data/03-data.sql
 
       - name: Run tests
         run: npm test

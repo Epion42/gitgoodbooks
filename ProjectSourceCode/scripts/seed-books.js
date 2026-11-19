@@ -1,4 +1,4 @@
-// Generates init-data/03-books.sql from Google Books.
+// Generates init-data/02-books.sql from Google Books.
 // Run from ProjectSourceCode/:  node scripts/seed-books.js
 require("dotenv").config();
 const fs = require("fs");
@@ -24,7 +24,7 @@ const GENRES = [
 
 const PAGES_PER_GENRE = 3;
 const PAGE_SIZE = 40; // Google's max
-const OUT_FILE = path.join(__dirname, "../init-data/03-books.sql");
+const OUT_FILE = path.join(__dirname, "../init-data/02-books.sql");
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 

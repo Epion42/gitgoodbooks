@@ -44,9 +44,13 @@ class DbUtils {
   }
 
   async getProfileUserByUsername(username) {
-    const query = `SELECT userId AS "userId", username,
-        profilePublic AS "isPublic"
-      FROM users WHERE username = $1;`;
+    const query = `SELECT u.userId AS "userId", u.username,
+        u.profilePublic AS "isPublic",
+        (SELECT COUNT(*)::int FROM follower f WHERE f.targetUserId = u.userId)
+          AS "followerCount",
+        (SELECT COUNT(*)::int FROM follower f WHERE f.followerUserId = u.userId)
+          AS "followingCount"
+      FROM users u WHERE u.username = $1;`;
     return await db.oneOrNone(query, [username]);
   }
 
@@ -77,6 +81,56 @@ class DbUtils {
       WHERE userId = $1
       RETURNING userId, username;`;
     return await db.one(query, [userId, username, passwordHash, isPublic]);
+  }
+
+  async isFollowing(followerUserId, targetUserId) {
+    const query = `SELECT 1 FROM follower
+      WHERE followerUserId = $1 AND targetUserId = $2;`;
+    return (await db.oneOrNone(query, [followerUserId, targetUserId])) !== null;
+  }
+
+  // ON CONFLICT DO NOTHING means repeated clicks (or a stale tab) won't do anything silly
+  async followUser(followerUserId, targetUserId) {
+    const query = `INSERT INTO follower (followerUserId, targetUserId)
+      VALUES ($1, $2) ON CONFLICT DO NOTHING;`;
+    await db.none(query, [followerUserId, targetUserId]);
+  }
+
+  async unfollowUser(followerUserId, targetUserId) {
+    const query = `DELETE FROM follower
+      WHERE followerUserId = $1 AND targetUserId = $2;`;
+    await db.none(query, [followerUserId, targetUserId]);
+  }
+
+  // EXISTS subquery here annotates every row for a browsing user, so the Handlebars
+  // template can pick follow or unfollow user without extra queries. A not-logged-in
+  // user gives false for every row.
+  async getFollowers(userId, viewerUserId = null) {
+    const query = `
+      SELECT u.userId AS "userId", u.username, u.profilePublic AS "isPublic",
+        EXISTS (
+          SELECT 1 FROM follower vf
+          WHERE vf.followerUserId = $2::int AND vf.targetUserId = u.userId
+        ) AS "isFollowedByViewer"
+      FROM follower f
+      JOIN users u ON u.userId = f.followerUserId
+      WHERE f.targetUserId = $1
+      ORDER BY lower(u.username);`;
+    return await db.any(query, [userId, viewerUserId]);
+  }
+
+  async getFollowing(userId, viewerUserId = null) {
+    const query = `
+      SELECT u.userId AS "userId", u.username, u.profilePublic AS "isPublic",
+        EXISTS (
+          SELECT 1 FROM follower vf
+          WHERE vf.followerUserId = $2::int AND vf.targetUserId = u.userId
+        ) AS "isFollowedByViewer"
+      FROM follower f
+      JOIN users u ON u.userId = f.targetUserId
+      WHERE f.followerUserId = $1
+      ORDER BY lower(u.username);`;
+    return await db.any(query, [userId, viewerUserId]);
   }
 
   async saveBook(book) {
