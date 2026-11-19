@@ -1591,3 +1591,103 @@ describe("Follower lists", () => {
     });
   });
 });
+
+describe("Dismiss recommendations", () => {
+  let bookId; // any seeded Science Fiction book
+
+  beforeAll(async () => {
+    const sciFi = await dbUtils.getGenreBySlug("science-fiction");
+    const { books } = await dbUtils.getBooksByCategory(sciFi.categoryId, 1, 0);
+    bookId = books[0].bookId;
+  });
+
+  describe("POST /recommendations/:id/dismiss and /restore", () => {
+    const agent = request.agent(app);
+
+    beforeAll(async () => {
+      await agent.post("/login").send({
+        username: "testUser1",
+        password: "DummyPass1",
+      });
+    });
+
+    afterAll(async () => {
+      await dbUtils.restoreBook(1, bookId);
+    });
+
+    it("should redirect to /login when signed out", async () => {
+      const res = await request(app).post(`/recommendations/${bookId}/dismiss`);
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe("/login");
+    });
+
+    it("should 404 for a badly formatted book id", async () => {
+      const res = await agent.post("/recommendations/bad!id/dismiss");
+
+      expect(res.status).toBe(404);
+    });
+
+    it("should 404 for a book that isn't in the database", async () => {
+      const res = await agent.post("/recommendations/XXXXXXXXXXXX/dismiss");
+
+      expect(res.status).toBe(404);
+    });
+
+    it("should dismiss a book and redirect with an undo link", async () => {
+      const res = await agent.post(`/recommendations/${bookId}/dismiss`);
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe(
+        `/recommendations?dismissed=${bookId}`,
+      );
+      expect(await dbUtils.getDismissedBookIds(1)).toEqual([bookId]);
+    });
+
+    it("should not error when dismissing the same book twice", async () => {
+      const res = await agent.post(`/recommendations/${bookId}/dismiss`);
+
+      expect(res.status).toBe(302);
+      expect(await dbUtils.getDismissedBookIds(1)).toEqual([bookId]);
+    });
+
+    it("should show the undo banner", async () => {
+      const res = await agent.get(`/recommendations?dismissed=${bookId}`);
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain(`/recommendations/${bookId}/restore`);
+    });
+
+    it("should restore the book", async () => {
+      const res = await agent.post(`/recommendations/${bookId}/restore`);
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe("/recommendations");
+      expect(await dbUtils.getDismissedBookIds(1)).toEqual([]);
+    });
+  });
+
+  describe("dbUtils dismissBook with getRecommendations", () => {
+    const userId = 10;
+
+    afterAll(async () => {
+      await dbUtils.setUserGenres(userId, []);
+      await dbUtils.restoreBook(userId, bookId);
+    });
+
+    it("should leave dismissed books out until restored", async () => {
+      const sciFi = await dbUtils.getGenreBySlug("science-fiction");
+      await dbUtils.setUserGenres(userId, [sciFi.categoryId]);
+      const ids = async () =>
+        (await dbUtils.getRecommendations(userId, 10000)).map((b) => b.bookId);
+
+      expect(await ids()).toContain(bookId);
+
+      await dbUtils.dismissBook(userId, bookId);
+      expect(await ids()).not.toContain(bookId);
+
+      await dbUtils.restoreBook(userId, bookId);
+      expect(await ids()).toContain(bookId);
+    });
+  });
+});

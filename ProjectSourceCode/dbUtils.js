@@ -386,6 +386,7 @@ class DbUtils {
       WHERE g.userId = $1
         AND NOT EXISTS (SELECT 1 FROM journal j WHERE j.userId = $1 AND j.bookId = b.bookId)
         AND NOT EXISTS (SELECT 1 FROM review v WHERE v.userId = $1 AND v.bookId = b.bookId)
+        AND NOT EXISTS (SELECT 1 FROM dismissedBook d WHERE d.userId = $1 AND d.bookId = b.bookId)
       GROUP BY b.bookId, r.avgRating
       HAVING SUM(g.score) > 0
       ORDER BY "matchScore" DESC,
@@ -393,6 +394,26 @@ class DbUtils {
         md5(b.bookId || $1::text || current_date::text)
       LIMIT $2;`;
     return await db.any(query, [userId, limit]);
+  }
+
+  // ON CONFLICT so dismissing twice (double click, stale tab) is harmless
+  async dismissBook(userId, bookId) {
+    const query = `INSERT INTO dismissedBook (userId, bookId) VALUES ($1, $2)
+      ON CONFLICT DO NOTHING;`;
+    await db.none(query, [userId, bookId]);
+  }
+
+  async restoreBook(userId, bookId) {
+    const query =
+      "DELETE FROM dismissedBook WHERE userId = $1 AND bookId = $2;";
+    await db.none(query, [userId, bookId]);
+  }
+
+  async getDismissedBookIds(userId) {
+    const query = `SELECT bookId AS "bookId" FROM dismissedBook
+      WHERE userId = $1 ORDER BY dismissedAt DESC;`;
+    const rows = await db.any(query, [userId]);
+    return rows.map((row) => row.bookId);
   }
 }
 

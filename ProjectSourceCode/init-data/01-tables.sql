@@ -86,6 +86,16 @@ CREATE TABLE IF NOT EXISTS journalEntry (
     FOREIGN KEY (parentJournalId) REFERENCES journal (journalId) ON DELETE CASCADE
 );
 
+-- Books a user marked "Not interested" on their recommendations
+CREATE TABLE IF NOT EXISTS dismissedBook (
+    userId INT NOT NULL,
+    bookId VARCHAR(20) NOT NULL,
+    dismissedAt TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES users (userId) ON DELETE CASCADE,
+    FOREIGN KEY (bookId) REFERENCES books (bookId) ON DELETE CASCADE,
+    PRIMARY KEY (userId, bookId)
+);
+
 CREATE INDEX IF NOT EXISTS bookReview ON review (bookId);
 CREATE INDEX IF NOT EXISTS bookCategory ON bookToCategory (categoryId);
 CREATE INDEX IF NOT EXISTS userJournal ON journal (userId);
