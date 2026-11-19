@@ -923,6 +923,101 @@ describe("dbUtils getTasteProfile", () => {
   });
 });
 
+describe("Recommendations", () => {
+  describe("GET /recommendations", () => {
+    const agent = request.agent(app);
+
+    beforeAll(async () => {
+      await agent.post("/login").send({
+        username: "testUser1",
+        password: "DummyPass1",
+      });
+    });
+
+    it("should redirect to /login when signed out", async () => {
+      const res = await request(app).get("/recommendations");
+
+      expect(res.status).toBe(302);
+      expect(res.header["location"]).toBe("/login");
+    });
+
+    it("should return the page when signed in", async () => {
+      const res = await agent.get("/recommendations");
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain("Recommended for you");
+    });
+  });
+
+  // These tests don't assume which books are seeded, only that the
+  // Science Fiction browse genre has at least two books.
+  describe("dbUtils getRecommendations", () => {
+    const userId = 10; // testUser10 has no seeded reviews or journal entries
+    let sciFiId;
+    let sciFiBookIds;
+    let reviewedId; // set by the "skip" test, reused and cleaned up later
+    let trackedId;
+
+    const ids = (books) => books.map((book) => book.bookId);
+
+    beforeAll(async () => {
+      sciFiId = (await dbUtils.getGenreBySlug("science-fiction")).categoryId;
+      const { books } = await dbUtils.getBooksByCategory(sciFiId, 10000, 0);
+      sciFiBookIds = ids(books);
+    });
+
+    afterAll(async () => {
+      await dbUtils.setUserGenres(userId, []);
+      if (reviewedId) await dbUtils.deleteReview(userId, reviewedId);
+      if (trackedId) await dbUtils.removeJournalEntry(userId, trackedId);
+    });
+
+    it("should have enough seeded Science Fiction books to test with", () => {
+      expect(sciFiBookIds.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it("should be empty with no taste profile", async () => {
+      expect(await dbUtils.getRecommendations(userId)).toEqual([]);
+    });
+
+    it("should only recommend books in a picked genre", async () => {
+      await dbUtils.setUserGenres(userId, [sciFiId]);
+      const books = await dbUtils.getRecommendations(userId);
+
+      expect(books).toHaveLength(Math.min(12, sciFiBookIds.length));
+      for (const book of books) {
+        expect(sciFiBookIds).toContain(book.bookId);
+        expect(book.matchScore).toBe(3); // one +3 pick, no other signals
+      }
+    });
+
+    it("should respect the limit", async () => {
+      expect(await dbUtils.getRecommendations(userId, 1)).toHaveLength(1);
+    });
+
+    it("should skip books the user has reviewed or tracked", async () => {
+      [reviewedId, trackedId] = ids(await dbUtils.getRecommendations(userId));
+
+      await dbUtils.saveReview(userId, reviewedId, 5, null);
+      await dbUtils.setJournalStatus(userId, trackedId, "TO_READ");
+
+      // A large limit so a book can't just have been pushed off the list
+      const remaining = ids(await dbUtils.getRecommendations(userId, 10000));
+      expect(remaining).not.toContain(reviewedId);
+      expect(remaining).not.toContain(trackedId);
+    });
+
+    it("should be empty when every signal is negative", async () => {
+      await dbUtils.setUserGenres(userId, []);
+      await dbUtils.removeJournalEntry(userId, trackedId);
+      await dbUtils.saveReview(userId, reviewedId, 1, null); // overwrites the 5★
+
+      // Only signal left: -2 for each of that book's genres
+      expect(await dbUtils.getRecommendations(userId)).toEqual([]);
+    });
+  });
+});
+
 describe("Follower data helpers", () => {
   // testUser1 does not follow testUser6 in the seed data, so this
   // pair can be used as an isolated relationship.
