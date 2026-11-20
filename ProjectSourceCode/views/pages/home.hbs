@@ -1,106 +1,110 @@
-<!-- Homepage Template -->
+{{! Homepage Template }}
 <div class="row">
   {{> sidebar}}
 
   <div class="col">
-    <div id="mainpage" class="row row-cols-1 g-3">
-      {{! An array of rows for the homepages, each 3 Slides that are arrays, each of them having an array of 3 books}}
-      {{#each HomepageBookRow }}
-        <div class="col rounded-1">
-          <div id="{{@key}}" class="carousel slide book-row" data-bs-ride="carousel">
-            <div class="carousel-indicators">
-              <button type="button"
-                      data-bs-target="#{{@key}}"
-                      data-bs-slide-to="0"
-                      class="active"
-                      aria-current="true"
-                      aria-label="Slide 1"></button>
-              <button type="button"
-                      data-bs-target="#{{@key}}"
-                      data-bs-slide-to="1"
-                      aria-label="Slide 2"></button>
-              <button type="button"
-                      data-bs-target="#{{@key}}"
-                      data-bs-slide-to="2"
-                      aria-label="Slide 3"></button>
-            </div>
-            <div class="carousel-inner">
-              {{! Each an array of Slides, each with of 3 books}}
-              {{#each CarouselSlide }}
-                <div class="carousel-item {{#if @first }} active {{/if }}">
-                  <div class="row row-cols-3 justify-content-center">
-                    {{! An array of 3 books}}
-                    {{#each Books }}
-                      <div class="col-3 p-3">
-                        <div class="card mb-3">
-                          <div class="row g-0">
-                            <div class="col-auto card-image">
-                              <a href="/books">
-                                <img src="{{thumbnail}}" class="img-fluid rounded-start" alt="Examplebook">
-                              </a>
-                            </div>
-                            <div class="col">
-                              <div class="card-body">
-                                <h5 class="card-title">{{title}}</h5>
-                                <p class="card-text">{{publishYear}}</p>
-                                <p class="card-text">
-                                  by
-                                  {{#each authors }}
-                                    {{#if @first }}
-                    {{this}}{{else}} ,{{this}}{{/if}}{{/each}}
-                      </p>
-                      <p class="card-text">
-                        <small class="text-body-secondary">{{pageCount}} pages</small>
-                      </p>
-                      <p class="card-text">
-                        <small class="text-body-secondary">
-                          {{#each categories }}
-                            <span class="rounded-pill book-category">{{this}} that</span> {{/each}}</small>
-                      </p>
+    <div class="container py-4">
+      <div id="mainpage" class="row row-cols-1 g-3">
+        {{! An array of rows for the homepages, each 3 Slides that are arrays, each of them having an array of 3 books}}
+        {{#each HomepageBookRow }}
+          <div class="col rounded-1">
+            <div id="{{@key}}" class="carousel slide book-row" data-bs-ride="carousel">
+              <div class="carousel-indicators">
+                <button type="button"
+                        data-bs-target="#{{@key}}"
+                        data-bs-slide-to="0"
+                        class="active"
+                        aria-current="true"
+                        aria-label="Slide 1"></button>
+                <button type="button"
+                        data-bs-target="#{{@key}}"
+                        data-bs-slide-to="1"
+                        aria-label="Slide 2"></button>
+                <button type="button"
+                        data-bs-target="#{{@key}}"
+                        data-bs-slide-to="2"
+                        aria-label="Slide 3"></button>
+              </div>
+              <div class="carousel-inner">
+                {{! Each an array of Slides, each with of 3 books}}
+                {{#each CarouselSlide }}
+                  <div class="carousel-item {{#if @first }} active {{/if }}">
+                    <div class="row row-cols-3 justify-content-center">
+                      {{! An array of 3 books}}
+                      {{#each Books }}
+                        <div class="col-3 p-3">
+                          <div class="card mb-3">
+                            <div class="row g-0">
+                              <div class="col-auto card-image">
+                                <a href="/books">
+                                  <img src="{{thumbnail}}" class="img-fluid rounded-start" alt="Examplebook">
+                                </a>
+                              </div>
+                              <div class="col">
+                                <div class="card-body">
+                                  <h5 class="card-title">{{title}}</h5>
+                                  <p class="card-text">{{publishYear}}</p>
+                                  <p class="card-text">
+                                    by
+                                    {{#each authors }}
+                                      {{#if @first }}
+                      {{this}}{{else}} ,{{this}}{{/if}}{{/each}}
+                        </p>
+                        <p class="card-text">
+                          <small class="text-body-secondary">{{pageCount}} pages</small>
+                        </p>
+                        <p class="card-text">
+                          <small class="text-body-secondary">
+                            {{#each categories }}
+                              <span class="genre badge me-1">{{this}} that</span>
+                            {{/each}}
+                          </small>
+                        </p>
 
-                      </div>
-                      </div>
-                      </div>
-                      </div>
-                      </div>
-                    {{/each}}
+                        </div>
+                        </div>
+                        </div>
+                        </div>
+                        </div>
+                      {{/each}}
+                    </div>
                   </div>
-                </div>
-              {{/each}}
-              <div class="carousel-item">gug</div>
-              <div class="carousel-item">gug</div>
+                {{/each}}
+                <div class="carousel-item">gug</div>
+                <div class="carousel-item">gug</div>
+              </div>
+              <button class="carousel-control-prev"
+                      type="button"
+                      data-bs-target="#{{@key}}"
+                      data-bs-slide="prev">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="128"
+                     height="128"
+                     fill="currentColor"
+                     class="bi bi-chevron-compact-left"
+                     viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M9.224 1.553a.5.5 0 0 1 .223.67L6.56 8l2.888 5.776a.5.5 0 1 1-.894.448l-3-6a.5.5 0 0 1 0-.448l3-6a.5.5 0 0 1 .67-.223" />
+                </svg>
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button class="carousel-control-next"
+                      type="button"
+                      data-bs-target="#{{@key}}"
+                      data-bs-slide="next">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="128"
+                     height="128"
+                     fill="currentColor"
+                     class="bi bi-chevron-compact-right"
+                     viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M6.776 1.553a.5.5 0 0 1 .671.223l3 6a.5.5 0 0 1 0 .448l-3 6a.5.5 0 1 1-.894-.448L9.44 8 6.553 2.224a.5.5 0 0 1 .223-.671" />
+                </svg>
+                <span class="visually-hidden">Next</span>
+              </button>
             </div>
-            <button class="carousel-control-prev"
-                    type="button"
-                    data-bs-target="#{{@key}}"
-                    data-bs-slide="prev">
-              <svg xmlns="http://www.w3.org/2000/svg"
-                   width="128"
-                   height="128"
-                   fill="currentColor"
-                   class="bi bi-chevron-compact-left"
-                   viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M9.224 1.553a.5.5 0 0 1 .223.67L6.56 8l2.888 5.776a.5.5 0 1 1-.894.448l-3-6a.5.5 0 0 1 0-.448l3-6a.5.5 0 0 1 .67-.223" />
-              </svg>
-              <span class="visually-hidden">Previous</span>
-            </button>
-            <button class="carousel-control-next"
-                    type="button"
-                    data-bs-target="#{{@key}}"
-                    data-bs-slide="next">
-              <svg xmlns="http://www.w3.org/2000/svg"
-                   width="128"
-                   height="128"
-                   fill="currentColor"
-                   class="bi bi-chevron-compact-right"
-                   viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M6.776 1.553a.5.5 0 0 1 .671.223l3 6a.5.5 0 0 1 0 .448l-3 6a.5.5 0 1 1-.894-.448L9.44 8 6.553 2.224a.5.5 0 0 1 .223-.671" />
-              </svg>
-              <span class="visually-hidden">Next</span>
-            </button>
           </div>
-        </div>
-      {{/each}}
+        {{/each}}
+      </div>
     </div>
   </div>
 </div>
