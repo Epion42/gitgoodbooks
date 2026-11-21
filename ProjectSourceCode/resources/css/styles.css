@@ -182,6 +182,7 @@ a.genre-link:hover{
 
 .genre{
     background-color: var(--lavendar-blush);
+    color: black;
 }
 
 /* Footer */
