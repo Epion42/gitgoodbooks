@@ -1,302 +1,348 @@
 /* https://coolors.co/004e64-25a18e-9fffcb-f4ac45-fff2f1 */
 /* Website color palette */
 :root {
-    --dark-teal: #004E64FF;
-    --verdigris: #25A18E;
-    --hover-verdigris: #4DDB99;
-    --aquamarine: #9FFFCBFF;
-    --honey-bronze: #F4AC45FF;
-    --hover-honey-bronze: #F7C278;
-    --lavendar-blush: #FFF2F1FF;
-    --hover-lavendar-blush: #e6b6b3;
+  --dark-teal: #004e64ff;
+  --verdigris: #25a18e;
+  /* Darker than the base green so white text stays readable on hover. */
+  --hover-verdigris: #1c7a6c;
+  --aquamarine: #9fffcbff;
+  --honey-bronze: #f4ac45ff;
+  --hover-honey-bronze: #f7c278;
+  --active-honey-bronze: #d98e2b;
+  --lavendar-blush: #fff2f1ff;
+  --hover-lavendar-blush: #e6b6b3;
 }
 
 /* Navbar */
-#navSearch{ /*font for some reason the color wont change */
-    font-family: 'Courier New', Courier, monospace;
-    color: black;
-    border: 2px solid #25a18e;
+#navSearch {
+  font-family: "Courier New", Courier, monospace;
+  color: black;
+  border: 2px solid #25a18e;
 }
 
-.navbar-logo{
-    object-fit: cover;
-    max-width: 150px;
-    max-height: 150px;
+.navbar-logo {
+  object-fit: cover;
+  max-width: 150px;
+  max-height: 150px;
 }
-.navbar-brand{
-    margin-right: 0px;
-}
-
-/* Color presets for buttons and elements */
-.btn-primary{
-    font-family: 'Courier New', Courier, monospace;
-    color: white;
-    border-color: var(--verdigris);
-    background-color: var(--verdigris);  
-}
-.btn-primary:hover{
-  border-color: var(--hover-verdigris);
-  background-color: var(--hover-verdigris);
+.navbar-brand {
+  margin-right: 0px;
 }
 
-.btn-secondary{
-    font-family: 'Courier New', Courier, monospace;
-    color: black;
-    border-color: var(--honey-bronze);
-    background-color: var(--honey-bronze);
-}
-.btn-secondary:hover{
-  border-color: var(--hover-honey-bronze);
-  background-color: var(--hover-honey-bronze);
+/* Color presets for buttons and elements.
+   Use Bootstrap's button variables so hover, focus, active and checked states
+   all stay on-theme instead of falling back to Bootstrap's blue/grey. */
+.btn-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--verdigris);
+  --bs-btn-border-color: var(--verdigris);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--hover-verdigris);
+  --bs-btn-hover-border-color: var(--hover-verdigris);
+  --bs-btn-focus-shadow-rgb: 37, 161, 142;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--dark-teal);
+  --bs-btn-active-border-color: var(--dark-teal);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: var(--verdigris);
+  --bs-btn-disabled-border-color: var(--verdigris);
+  font-family: "Courier New", Courier, monospace;
 }
 
-.btn-genre{
-    font-family: 'Courier New', Courier, monospace;
-    color: black;
-    border-color: var(--lavendar-blush);
-    background-color: var(--lavendar-blush);
+.btn-secondary {
+  --bs-btn-color: #000;
+  --bs-btn-bg: var(--honey-bronze);
+  --bs-btn-border-color: var(--honey-bronze);
+  --bs-btn-hover-color: #000;
+  --bs-btn-hover-bg: var(--hover-honey-bronze);
+  --bs-btn-hover-border-color: var(--hover-honey-bronze);
+  --bs-btn-focus-shadow-rgb: 244, 172, 69;
+  --bs-btn-active-color: #000;
+  --bs-btn-active-bg: var(--active-honey-bronze);
+  --bs-btn-active-border-color: var(--active-honey-bronze);
+  --bs-btn-disabled-color: #000;
+  --bs-btn-disabled-bg: var(--honey-bronze);
+  --bs-btn-disabled-border-color: var(--honey-bronze);
+  font-family: "Courier New", Courier, monospace;
 }
-.btn-genre:hover{
-    border-color: var(--hover-lavendar-blush);
-    background-color: var(--hover-lavendar-blush);
+
+.btn-genre {
+  --bs-btn-color: #000;
+  --bs-btn-bg: var(--lavendar-blush);
+  --bs-btn-border-color: var(--hover-lavendar-blush);
+  --bs-btn-hover-color: #000;
+  --bs-btn-hover-bg: var(--hover-lavendar-blush);
+  --bs-btn-hover-border-color: var(--hover-lavendar-blush);
+  --bs-btn-focus-shadow-rgb: 230, 182, 179;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--dark-teal);
+  --bs-btn-active-border-color: var(--dark-teal);
+  font-family: "Courier New", Courier, monospace;
 }
 
 /* Body */
-body{
-    background-color: var(white);
-    font-family: "Courier New", "Lucida Console", monospace;
-    font-weight: bold;
+body {
+  background-color: #fff;
+  font-family: "Courier New", "Lucida Console", monospace;
+  font-weight: bold;
 }
 
 /* Sidebar quick-nav */
-#sidebar{
-    height: 100vh;
-    width: 250px;
-    background-color: var(--verdigris);
+#sidebar {
+  height: 100vh;
+  width: 250px;
+  background-color: var(--verdigris);
+  color: #fff;
 
-    padding: 0px;
-    margin-right: 0px;
-    font-size: 16px;
-    transition: 300ms ease-in-out;
-    overflow: hidden;
+  padding: 0px;
+  margin-right: 0px;
+  font-size: 16px;
+  transition: width 300ms ease-in-out;
+  overflow: hidden;
 }
 
-#sidebar svg{
+#sidebar svg {
   flex-shrink: 0;
   flex-grow: 1;
   display: flex;
-  color:white;
+  color: white;
   transition: 150ms ease;
 }
 
-#sidebar li{
-  padding-left: 50px;
-  transition: 200ms ease-in;
-  border-color: var(--verdigris);
+#sidebar li {
+  /* Reserve the border width so hovering doesn't shift the links. */
+  padding-left: 44px;
+  border-left: 6px solid transparent;
+  transition:
+    background-color 200ms ease-in-out,
+    border-color 200ms ease-in-out;
 }
-#sidebar li:hover{
+#sidebar li:hover {
   background-color: var(--hover-verdigris);
-  transition: 200ms ease-in-out;
-  border-left: solid var(--aquamarine) 6px;
+  border-left-color: var(--aquamarine);
 }
 
-#sidebar a{
-  color: white;
+#sidebar a,
+#sidebar a:hover {
+  color: #fff;
 }
 
-#sidebar.collapsed{
+#sidebar.collapsed {
   width: 66px;
 }
 
-#sidebar.collapsed svg{
+#sidebar.collapsed svg {
   rotate: 180deg;
 }
 
-#sidebar.collapsed li:hover{
+#sidebar.collapsed li {
+  padding-left: 0;
+  border-left-width: 0;
+  text-align: center;
+}
+
+/* Keep the collapsed links readable as markers and let their title
+   attributes provide the label. */
+#sidebar.collapsed .nav-link {
+  font-size: 0;
+  white-space: nowrap;
+}
+#sidebar.collapsed .nav-link::after {
+  content: "•";
+  font-size: 1.5rem;
+  line-height: 1;
+}
+#sidebar.collapsed .nav-link.disabled {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+#sidebar.collapsed li:hover {
   background-color: var(--verdigris);
-  border-color: var(--verdigris);
 }
 
 /* Homepage */
-.carousel-control-prev svg, .carousel-control-next svg{
+.carousel-control-prev svg,
+.carousel-control-next svg {
   color: var(--verdigris);
 }
 
-#mainpage .book-row{
+#mainpage .book-row {
   height: 300px;
 }
 
-#mainpage img{
-  width:120px;
+#mainpage img {
+  width: 120px;
   height: 100%;
 }
 
-#mainpage .card{
+#mainpage .card {
   max-width: 540px;
   height: 250px;
 }
 
-#mainpage .card > .row{
+#mainpage .card > .row {
   overflow: hidden;
 }
 
-.card-image{
+.card-image {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 /* Books */
-.book-row{
+.book-row {
   background-color: var(--aquamarine);
 }
 
-.book-category{
+.book-category {
   background-color: var(--lavendar-blush);
 }
 
 /* Genres */
-.genre-card{
-    background-color: var(--lavendar-blush);
-    border-color: var(--hover-lavendar-blush);
-    transition: ease 200ms;
+.genre-card {
+  background-color: var(--lavendar-blush);
+  border-color: var(--hover-lavendar-blush);
+  color: inherit;
+  transition: background-color 200ms ease;
 }
-.genre-card:hover{
-    background-color: var(--hover-lavendar-blush);
-}
-
-a.genre-link{
-    padding: 2px 5px 2px 5px;
-    background-color: var(--lavendar-blush);
-    color: black;
-    text-decoration: none;
-    transition: ease 200ms;
-}
-a.genre-link:hover{
-    background-color: var(--hover-lavendar-blush);
+.genre-card:hover {
+  background-color: var(--hover-lavendar-blush);
+  color: inherit;
 }
 
-.taste-bar{
-    background-color: var(--hover-lavendar-blush);
+a.genre-link {
+  padding: 2px 5px 2px 5px;
+  background-color: var(--lavendar-blush);
+  color: #000;
+  text-decoration: none;
+  transition: background-color 200ms ease;
+}
+a.genre-link:hover {
+  background-color: var(--hover-lavendar-blush);
+  color: #000;
 }
 
-.genre{
-    background-color: var(--lavendar-blush);
-    color: black;
+.taste-bar {
+  background-color: var(--hover-lavendar-blush);
+}
+
+.genre {
+  background-color: var(--lavendar-blush);
+  color: #000;
 }
 
 /* Footer */
-footer{
-    font-family: 'Courier New', Courier, monospace;
-    background-color: var(--dark-teal);
-
+footer {
+  font-family: "Courier New", Courier, monospace;
+  background-color: var(--dark-teal);
 }
-footer p{
-    color: white;
+footer p {
+  color: white;
 }
 
 .profile-cover {
-    width: 100%;
-    aspect-ratio: 2 / 3;
-    object-fit: cover;
-    border-radius: 0.375rem;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 0.375rem;
 }
 
 .profile-cover-sm {
-    width: 60px;
-    height: 90px;
-    flex: 0 0 auto;
-    object-fit: cover;
-    border-radius: 0.375rem;
+  width: 60px;
+  height: 90px;
+  flex: 0 0 auto;
+  object-fit: cover;
+  border-radius: 0.375rem;
 }
 
 .profile-carousel {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .profile-carousel-track {
-    display: flex;
-    flex: 1 1 auto;
-    gap: 1rem;
-    min-width: 0;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-    scroll-behavior: smooth;
-    scroll-snap-type: x proximity;
-    scrollbar-width: thin;
+  display: flex;
+  flex: 1 1 auto;
+  gap: 1rem;
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
 }
 
 .profile-carousel-item {
-    flex: 0 0 140px;
-    scroll-snap-align: start;
+  flex: 0 0 140px;
+  scroll-snap-align: start;
 }
 
 .profile-carousel-btn {
-    display: none;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    padding: 0;
-    border: 1px solid var(--bs-border-color);
-    border-radius: 50%;
-    background-color: var(--bs-body-bg);
-    color: var(--bs-body-color);
-    font-size: 1.5rem;
-    line-height: 1;
+  display: none;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 50%;
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  font-size: 1.5rem;
+  line-height: 1;
 }
 
 .profile-carousel.has-overflow .profile-carousel-btn {
-    display: inline-flex;
+  display: inline-flex;
 }
 
 .profile-carousel-btn:hover:not(:disabled) {
-    background-color: var(--bs-secondary-bg);
+  background-color: var(--bs-secondary-bg);
 }
 
 .profile-carousel-btn:disabled {
-    opacity: 0.4;
-    cursor: default;
+  opacity: 0.4;
+  cursor: default;
 }
 
 .profile-book-card {
-    position: relative;
+  position: relative;
 }
 
 .profile-remove {
-    position: absolute;
-    top: 0.25rem;
-    right: 0.25rem;
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
 }
 
 .profile-remove .btn {
-    width: 1.75rem;
-    height: 1.75rem;
-    padding: 0;
-    line-height: 1;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  line-height: 1;
 }
 
 .profile-shelf-more > summary {
-    display: inline-block;
-    list-style: none;
-    cursor: pointer;
+  display: inline-block;
+  list-style: none;
+  cursor: pointer;
 }
 
 .profile-shelf-more > summary::-webkit-details-marker {
-    display: none;
+  display: none;
 }
 
 .profile-shelf-more .when-open {
-    display: none;
+  display: none;
 }
 
 .profile-shelf-more[open] .when-open {
-    display: inline;
+  display: inline;
 }
 
 .profile-shelf-more[open] .when-closed {
-    display: none;
+  display: none;
 }
