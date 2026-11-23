@@ -1,102 +1,104 @@
 {{! Book Detail Page Template }}
-<div class="d-flex gap-4">
-  {{#if book.thumbnail }}
-    <img src="{{book.thumbnail}}" alt="Cover of {{book.title}}" width="128" />
-  {{/if}}
-  <div>
-    <h1>{{book.title}}</h1>
-    <p class="text-muted">
-      {{#each book.authors }}
-        {{this}}{{#unless @last}},{{/unless}}
-      {{/each}}
-      {{#if book.publishYear }}
-        · {{book.publishYear}}
-      {{/if}}
-      {{#if book.pageCount }}
-        · {{book.pageCount}} pages
-      {{/if}}
-    </p>
-    {{#each book.categories }}
-      <span class="badge genre me-1">{{this}}</span>
-    {{/each}}
-    <p class="mt-2 mb-0">
-      {{#if rating.count }}
-        <strong>{{rating.average}}</strong> / 5 · {{rating.count}} ratings
-      {{else}}
-        <span class="text-muted">No ratings yet</span>
-      {{/if}}
-    </p>
-  </div>
-</div>
-{{#if book.description }}
-  <p class="mt-4">{{book.description}}</p>
-{{/if}}
-<a class="btn btn-primary"
-   href="{{book.link}}"
-   target="_blank"
-   rel="noopener">View on Google Books</a>
-<section id="reviews" class="mt-5">
-  <h2 class="h4 mb-3">Ratings &amp; reviews</h2>
-  {{#if currentUser }}
-    <form method="post"
-          action="/books/{{book.bookId}}/review"
-          class="mb-4 col-12 col-md-8">
-      <fieldset class="mb-2">
-        <legend class="form-label fs-6">Your rating</legend>
-        {{#each starOptions }}
-          <input type="radio"
-                 class="btn-check"
-                 name="score"
-                 id="score-{{value}}"
-                 value="{{value}}"
-                 required
-                 {{#if checked }}
-                 checked
-                 {{/if }} />
-          <label class="btn btn-outline-warning" for="score-{{value}}">{{value}} ★</label>
-        {{/each}}
-      </fieldset>
-      <label for="message" class="form-label">Review (optional)</label>
-      <textarea class="form-control mb-2"
-                id="message"
-                name="message"
-                rows="3"
-                maxlength="512">{{myReview.message}}</textarea>
-      <button type="submit" class="btn btn-primary">
-        {{#if myReview }}
-          Update rating
-        {{else}}
-          Submit rating
-        {{/if}}
-      </button>
-    </form>
-    {{#if myReview }}
-      <form method="post"
-            action="/books/{{book.bookId}}/review/delete"
-            class="mb-4">
-        <button type="submit" class="btn btn-outline-danger btn-sm">Delete my rating</button>
-      </form>
+<div class="container py-4">
+  <div class="d-flex gap-4">
+    {{#if book.thumbnail }}
+      <img src="{{book.thumbnail}}" alt="Cover of {{book.title}}" width="128" />
     {{/if}}
-  {{else}}
-    <p>
-      <a href="/login">Log in</a> to rate this book.
-    </p>
-  {{/if}}
-  {{#each reviews }}
-    <div class="border-bottom py-3">
-      <div class="d-flex justify-content-between">
-        <a class="link-body-emphasis text-decoration-none"
-           href="/profile/{{username}}"><strong>{{username}}</strong></a>
-        <span class="text-muted">{{postedOn}}</span>
-      </div>
-      <div class="text-warning">{{stars}}</div>
-      {{#if message }}
-        <p class="mb-0 mt-1">{{message}}</p>
-      {{/if}}
+    <div>
+      <h1>{{book.title}}</h1>
+      <p class="text-muted">
+        {{#each book.authors }}
+          {{this}}{{#unless @last}},{{/unless}}
+        {{/each}}
+        {{#if book.publishYear }}
+          · {{book.publishYear}}
+        {{/if}}
+        {{#if book.pageCount }}
+          · {{book.pageCount}} pages
+        {{/if}}
+      </p>
+      {{#each book.categories }}
+        <span class="badge genre me-1">{{this}}</span>
+      {{/each}}
+      <p class="mt-2 mb-0">
+        {{#if rating.count }}
+          <strong>{{rating.average}}</strong> / 5 · {{rating.count}} ratings
+        {{else}}
+          <span class="text-muted">No ratings yet</span>
+        {{/if}}
+      </p>
     </div>
-  {{else}}
-    <p class="text-muted">No reviews yet.</p>
-  {{/each}}
-</section>
+  </div>
+  {{#if book.description }}
+    <p class="mt-4">{{book.description}}</p>
+  {{/if}}
+  <a class="btn btn-primary"
+     href="{{book.link}}"
+     target="_blank"
+     rel="noopener">View on Google Books</a>
+  <section id="reviews" class="mt-5">
+    <h2 class="h4 mb-3">Ratings &amp; reviews</h2>
+    {{#if currentUser }}
+      <form method="post"
+            action="/books/{{book.bookId}}/review"
+            class="mb-4 col-12 col-md-8">
+        <fieldset class="mb-2">
+          <legend class="form-label fs-6">Your rating</legend>
+          {{#each starOptions }}
+            <input type="radio"
+                   class="btn-check"
+                   name="score"
+                   id="score-{{value}}"
+                   value="{{value}}"
+                   required
+                   {{#if checked }}
+                   checked
+                   {{/if }} />
+            <label class="btn btn-outline-warning" for="score-{{value}}">{{value}} ★</label>
+          {{/each}}
+        </fieldset>
+        <label for="message" class="form-label">Review (optional)</label>
+        <textarea class="form-control mb-2"
+                  id="message"
+                  name="message"
+                  rows="3"
+                  maxlength="512">{{myReview.message}}</textarea>
+        <button type="submit" class="btn btn-primary">
+          {{#if myReview }}
+            Update rating
+          {{else}}
+            Submit rating
+          {{/if}}
+        </button>
+      </form>
+      {{#if myReview }}
+        <form method="post"
+              action="/books/{{book.bookId}}/review/delete"
+              class="mb-4">
+          <button type="submit" class="btn btn-outline-danger btn-sm">Delete my rating</button>
+        </form>
+      {{/if}}
+    {{else}}
+      <p>
+        <a href="/login">Log in</a> to rate this book.
+      </p>
+    {{/if}}
+    {{#each reviews }}
+      <div class="border-bottom py-3">
+        <div class="d-flex justify-content-between">
+          <a class="link-body-emphasis text-decoration-none"
+             href="/profile/{{username}}"><strong>{{username}}</strong></a>
+          <span class="text-muted">{{postedOn}}</span>
+        </div>
+        <div class="text-warning">{{stars}}</div>
+        {{#if message }}
+          <p class="mb-0 mt-1">{{message}}</p>
+        {{/if}}
+      </div>
+    {{else}}
+      <p class="text-muted">No reviews yet.</p>
+    {{/each}}
+  </section>
 
-{{> journalTracker}}
+  {{> journalTracker}}
+</div>

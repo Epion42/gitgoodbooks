@@ -11,15 +11,9 @@
   color: #004e64;
 }
 
-.auth-page .btn-primary {
-  background-color: #25a18e !important;
-  border-color: #25a18e !important;
-}
-
 .auth-page input {
   border-color: #25a18e !important;
-  color:#25a18e  !important;
-  
+  color: #004e64 !important;
 }
 
 /* Two columns: illustration and form. The illustration is absolutely

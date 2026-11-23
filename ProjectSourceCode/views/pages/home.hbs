@@ -2,7 +2,7 @@
 <div class="row">
   {{> sidebar}}
 
-  <div class="col">
+  <div class="col py-4 px-3">
     <div id="mainpage" class="row row-cols-1 g-3">
       {{! An array of rows for the homepages, each 3 Slides that are arrays, each of them having an array of 3 books}}
       {{#each HomepageBookRow }}
@@ -35,8 +35,10 @@
                         <div class="card mb-3">
                           <div class="row g-0">
                             <div class="col-auto card-image">
-                              <a href="/books">
-                                <img src="{{thumbnail}}" class="img-fluid rounded-start" alt="Examplebook">
+                              <a href="/books/{{bookId}}">
+                                <img src="{{thumbnail}}"
+                                     class="img-fluid rounded-start"
+                                     alt="Cover of {{title}}">
                               </a>
                             </div>
                             <div class="col">
@@ -55,7 +57,7 @@
                       <p class="card-text">
                         <small class="text-body-secondary">
                           {{#each categories }}
-                            <span class="genre badge me-1">{{this}} that</span>
+                            <span class="genre badge me-1">{{this}}</span>
                           {{/each}}
                         </small>
                       </p>
@@ -69,8 +71,6 @@
                   </div>
                 </div>
               {{/each}}
-              <div class="carousel-item">gug</div>
-              <div class="carousel-item">gug</div>
             </div>
             <button class="carousel-control-prev"
                     type="button"

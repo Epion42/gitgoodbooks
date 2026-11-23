@@ -1,11 +1,18 @@
 // This is the client-side JS
 const sidebar = document.querySelector("#sidebar");
+const sidebarToggle = document.querySelector("[data-sidebar-toggle]");
 
 function toggleSidebar() {
-  sidebar.classList.toggle("collapsed");
-  Array.from(sidebar.getElementsByClassName("nav-link")).forEach((a) => {
-    a.classList.toggle("disabled");
-  });
+  if (!sidebar) return;
+
+  const collapsed = sidebar.classList.toggle("collapsed");
+  if (sidebarToggle) {
+    sidebarToggle.setAttribute("aria-expanded", String(!collapsed));
+    sidebarToggle.setAttribute(
+      "aria-label",
+      collapsed ? "Expand sidebar" : "Collapse sidebar",
+    );
+  }
 }
 
 const carouselTracks = document.querySelectorAll("[data-carousel-track]");
