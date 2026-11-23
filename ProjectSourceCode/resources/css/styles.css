@@ -3,33 +3,19 @@
 :root {
     --dark-teal: #004E64FF;
     --verdigris: #25A18E;
-    --hover-verdigrids: #2d7a8d;
+    --hover-verdigris: #4DDB99;
     --aquamarine: #9FFFCBFF;
     --honey-bronze: #F4AC45FF;
+    --hover-honey-bronze: #F7C278;
     --lavendar-blush: #FFF2F1FF;
+    --hover-lavendar-blush: #e6b6b3;
 }
 
-/* Color presets for buttons and elements */
-.btn-outline-primary{
-    font-family: 'Courier New', Courier, monospace;
-    color: white;
-    border-color: var(--verdigris);
-    background-color: var(--verdigris);
-    
-}
-
-.btn-outline-secondary{
-    font-family: 'Courier New', Courier, monospace;
-    color: black;
-    border-color: var(--honey-bronze);
-    background-color: var(--honey-bronze);
-}
-
+/* Navbar */
 #navSearch{ /*font for some reason the color wont change */
     font-family: 'Courier New', Courier, monospace;
     color: black;
     border: 2px solid #25a18e;
-    
 }
 
 .navbar-logo{
@@ -41,18 +27,38 @@
     margin-right: 0px;
 }
 
-.btn-outline-primary:hover{
-  border-color: var(--aquamarine);
-  background-color: var(--aquamarine);
+/* Color presets for buttons and elements */
+.btn-primary{
+    font-family: 'Courier New', Courier, monospace;
+    color: white;
+    border-color: var(--verdigris);
+    background-color: var(--verdigris);  
+}
+.btn-primary:hover{
+  border-color: var(--hover-verdigris);
+  background-color: var(--hover-verdigris);
 }
 
-.btn-outline-secondary{
-  border-color: var(--honey-bronze);
-  color: var(--dark-teal);
+.btn-secondary{
+    font-family: 'Courier New', Courier, monospace;
+    color: black;
+    border-color: var(--honey-bronze);
+    background-color: var(--honey-bronze);
 }
-.btn-outline-secondary:hover{
-  border-color: var(--honey-bronze);
-  background-color: var(--honey-bronze);
+.btn-secondary:hover{
+  border-color: var(--hover-honey-bronze);
+  background-color: var(--hover-honey-bronze);
+}
+
+.btn-genre{
+    font-family: 'Courier New', Courier, monospace;
+    color: black;
+    border-color: var(--lavendar-blush);
+    background-color: var(--lavendar-blush);
+}
+.btn-genre:hover{
+    border-color: var(--hover-lavendar-blush);
+    background-color: var(--hover-lavendar-blush);
 }
 
 /* Body */
@@ -62,44 +68,51 @@ body{
     font-weight: bold;
 }
 
-/* Top Nav */
-.navbar{
-    background-color: var(white);
+/* Sidebar quick-nav */
+#sidebar{
+    height: 100vh;
+    width: 250px;
+    background-color: var(--verdigris);
+
+    padding: 0px;
+    margin-right: 0px;
+    font-size: 16px;
+    transition: 300ms ease-in-out;
+    overflow: hidden;
 }
 
-/* Sidebar quick-nav */
-.sidebar svg{
+#sidebar svg{
   flex-shrink: 0;
   flex-grow: 1;
   display: flex;
-
+  color:white;
   transition: 150ms ease;
 }
 
-.sidebar li{
+#sidebar li{
   padding-left: 50px;
-  transition: 200ms ease-in-out
+  transition: 200ms ease-in;
+  border-color: var(--verdigris);
 }
-.sidebar li:hover{
-  background-color: var(--hover-verdigrids);
+#sidebar li:hover{
+  background-color: var(--hover-verdigris);
+  transition: 200ms ease-in-out;
+  border-left: solid var(--aquamarine) 6px;
 }
 
-.sidebar a{
+#sidebar a{
   color: white;
 }
-.sidebar a:hover{
-  color: var(--verdigris);
-}
 
-.sidebar.collapsed{
+#sidebar.collapsed{
   width: 66px;
 }
 
-.collapsed svg{
+#sidebar.collapsed svg{
   rotate: 180deg;
 }
 
-.collapsed li:hover{
+#sidebar.collapsed li:hover{
   background-color: var(--verdigris);
   border-color: var(--verdigris);
 }
@@ -140,6 +153,36 @@ body{
 
 .book-category{
   background-color: var(--lavendar-blush);
+}
+
+/* Genres */
+.genre-card{
+    background-color: var(--lavendar-blush);
+    border-color: var(--hover-lavendar-blush);
+    transition: ease 200ms;
+}
+.genre-card:hover{
+    background-color: var(--hover-lavendar-blush);
+}
+
+a.genre-link{
+    padding: 2px 5px 2px 5px;
+    background-color: var(--lavendar-blush);
+    color: black;
+    text-decoration: none;
+    transition: ease 200ms;
+}
+a.genre-link:hover{
+    background-color: var(--hover-lavendar-blush);
+}
+
+.taste-bar{
+    background-color: var(--hover-lavendar-blush);
+}
+
+.genre{
+    background-color: var(--lavendar-blush);
+    color: black;
 }
 
 /* Footer */
