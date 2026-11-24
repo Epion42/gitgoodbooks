@@ -23,40 +23,51 @@
           {{/each}}
           · <a href="/profile/taste">Edit taste profile</a>
         </p>
-        {{#if books }}
-          <div class="list-group">
-            {{#each books }}
-              <div class="list-group-item d-flex gap-3 align-items-center">
-                <a href="/books/{{bookId}}"
-                   class="d-flex gap-3 flex-grow-1 text-decoration-none text-body">
-                  {{#if thumbnail }}
-                    <img src="{{thumbnail}}" alt="" width="60" />
-                  {{/if}}
-                  <div>
-                    <h5 class="mb-1">{{title}}</h5>
-                    <p class="mb-0 text-muted">
-                      {{#each authors }}
-                        {{this}}{{#unless @last}},{{/unless}}
+      {{/if}}
+      {{#if books }}
+        <div class="list-group">
+          {{#each books }}
+            <div class="list-group-item d-flex gap-3 align-items-center">
+              <a href="/books/{{bookId}}"
+                 class="d-flex gap-3 flex-grow-1 text-decoration-none text-body">
+                {{#if thumbnail }}
+                  <img src="{{thumbnail}}" alt="" width="60" />
+                {{/if}}
+                <div>
+                  <h5 class="mb-1">{{title}}</h5>
+                  <p class="mb-0 text-muted">
+                    {{#each authors }}
+                      {{this}}{{#unless @last}},{{/unless}}
+                    {{/each}}
+                    {{#if publishYear }}
+                      · {{publishYear}}
+                    {{/if}}
+                  </p>
+                  {{! Plain text, not profile links: the whole card is already a link }}
+                  {{#if likedBy }}
+                    <p class="mb-0 small text-muted">
+                      Liked by
+                      {{#each likedBy }}
+                        @{{this}}{{#unless @last}},{{/unless}}
                       {{/each}}
-                      {{#if publishYear }}
-                        · {{publishYear}}
-                      {{/if}}
                     </p>
-                  </div>
-                </a>
-                <form method="post" action="/recommendations/{{bookId}}/dismiss">
-                  <button type="submit" class="btn btn-outline-secondary btn-sm">Not interested</button>
-                </form>
-              </div>
-            {{/each}}
-          </div>
-        {{else}}
-          <p>You've already tracked or hidden every book we have in your genres. Try picking a few more genres.</p>
-        {{/if}}
+                  {{/if}}
+                </div>
+              </a>
+              <form method="post" action="/recommendations/{{bookId}}/dismiss">
+                <button type="submit" class="btn btn-outline-secondary btn-sm">Not interested</button>
+              </form>
+            </div>
+          {{/each}}
+        </div>
       {{else}}
-        <p>
-          <a href="/profile/taste">Pick some genres</a> or rate books you've read to get recommendations.
-        </p>
+        {{#if topGenres }}
+          <p>You've already tracked or hidden every book we have in your genres. Try picking a few more genres.</p>
+        {{else}}
+          <p>
+            <a href="/profile/taste">Pick some genres</a>, rate books you've read, or follow other readers to get recommendations.
+          </p>
+        {{/if}}
       {{/if}}
     </div>
   </div>

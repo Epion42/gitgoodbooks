@@ -34,6 +34,10 @@ db.connect()
 const BOOK_COLUMNS = `b.bookId AS "bookId", b.bookTitle AS "title", b.authors,
   b.publishDate AS "publishYear", b.thumbnail`;
 
+// How much a followed user's rating/like counts in recommendations, relative
+// to the user's own genre score. Below 1 so the user's own taste comes first.
+const FOLLOWING_WEIGHT = 0.5;
+
 class DbUtils {
   constructor() {}
 
@@ -375,25 +379,61 @@ class DbUtils {
     return rows.map((row) => row.categoryId);
   }
 
-  // Books in the user's liked genres that they haven't reviewed or tracked yet.
-  // Weights come from the userGenreScores view (init-data/01-tables.sql).
+  // Books matching the user's genres and/or rated or liked by people they
+  // follow (public profiles only, so private activity never shows up on
+  // someone else's page), minus anything they've tracked, reviewed or dismissed.
+  // Signal weights mirror the userGenreScores view (init-data/01-tables.sql).
   async getRecommendations(userId, limit = 12) {
-    const query = `SELECT ${BOOK_COLUMNS}, SUM(g.score)::float AS "matchScore"
-      FROM userGenreScores g
-      JOIN bookToCategory bc ON bc.categoryId = g.categoryId
-      JOIN books b ON b.bookId = bc.bookId
+    const query = `
+      WITH genreMatch AS (
+        SELECT bc.bookId, SUM(g.score) AS score
+        FROM userGenreScores g
+        JOIN bookToCategory bc ON bc.categoryId = g.categoryId
+        WHERE g.userId = $1
+        GROUP BY bc.bookId
+      ),
+      followed AS (
+        SELECT u.userId, u.username
+        FROM follower f
+        JOIN users u ON u.userId = f.targetUserId
+        WHERE f.followerUserId = $1 AND u.profilePublic
+      ),
+      followedSignals AS (
+        SELECT fu.username, r.bookId, r.reviewScore - 3 AS weight
+        FROM review r JOIN followed fu ON fu.userId = r.userId
+        UNION ALL
+        SELECT fu.username, j.bookId, j.score * 2
+        FROM journal j JOIN followed fu ON fu.userId = j.userId
+        WHERE j.score <> 0
+      ),
+      followedMatch AS (
+        SELECT bookId, SUM(weight) AS score,
+          array_agg(DISTINCT username) FILTER (WHERE weight > 0) AS "likedBy"
+        FROM followedSignals
+        GROUP BY bookId
+      ),
+      scored AS (
+        SELECT b.bookId,
+          COALESCE(gm.score, 0) + $3 * COALESCE(fm.score, 0) AS matchScore,
+          fm."likedBy"
+        FROM books b
+        LEFT JOIN genreMatch gm ON gm.bookId = b.bookId
+        LEFT JOIN followedMatch fm ON fm.bookId = b.bookId
+        WHERE gm.bookId IS NOT NULL OR fm.bookId IS NOT NULL
+      )
+      SELECT ${BOOK_COLUMNS}, s.matchScore::float AS "matchScore", s."likedBy"
+      FROM scored s
+      JOIN books b ON b.bookId = s.bookId
       LEFT JOIN bookRatings r ON r.bookId = b.bookId
-      WHERE g.userId = $1
+      WHERE s.matchScore > 0
         AND NOT EXISTS (SELECT 1 FROM journal j WHERE j.userId = $1 AND j.bookId = b.bookId)
         AND NOT EXISTS (SELECT 1 FROM review v WHERE v.userId = $1 AND v.bookId = b.bookId)
         AND NOT EXISTS (SELECT 1 FROM dismissedBook d WHERE d.userId = $1 AND d.bookId = b.bookId)
-      GROUP BY b.bookId, r.avgRating
-      HAVING SUM(g.score) > 0
       ORDER BY "matchScore" DESC,
         r.avgRating DESC NULLS LAST,
         md5(b.bookId || $1::text || current_date::text)
       LIMIT $2;`;
-    return await db.any(query, [userId, limit]);
+    return await db.any(query, [userId, limit, FOLLOWING_WEIGHT]);
   }
 
   // ON CONFLICT so dismissing twice (double click, stale tab) is harmless
