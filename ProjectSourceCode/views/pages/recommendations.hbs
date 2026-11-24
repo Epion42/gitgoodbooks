@@ -60,12 +60,14 @@
             </div>
           {{/each}}
         </div>
-      {{else if topGenres }}
-        <p>You've already tracked or hidden every book we have in your genres. Try picking a few more genres.</p>
       {{else}}
-        <p>
-          <a href="/profile/taste">Pick some genres</a>, rate books you've read, or follow other readers to get recommendations.
-        </p>
+        {{#if topGenres }}
+          <p>You've already tracked or hidden every book we have in your genres. Try picking a few more genres.</p>
+        {{else}}
+          <p>
+            <a href="/profile/taste">Pick some genres</a>, rate books you've read, or follow other readers to get recommendations.
+          </p>
+        {{/if}}
       {{/if}}
     </div>
   </div>
