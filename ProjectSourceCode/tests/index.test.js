@@ -1691,3 +1691,138 @@ describe("Dismiss recommendations", () => {
     });
   });
 });
+
+describe("Recommendations from followed users", () => {
+  // testUser10 has no seeded activity and follows nobody, so every
+  // recommendation here comes from the setup in each test.
+  const userId = 10;
+  const publicFriend = 4; // testUser4, public profile
+  const otherPublicFriend = 1; // testUser1, public profile
+  const privateFriend = 3; // testUser3, private profile
+  const friends = [publicFriend, otherPublicFriend, privateFriend];
+  let sciFiId;
+  let bookId; // a Science Fiction book none of the users above has touched
+
+  const ids = async () =>
+    (await dbUtils.getRecommendations(userId, 10000)).map((b) => b.bookId);
+
+  beforeAll(async () => {
+    sciFiId = (await dbUtils.getGenreBySlug("science-fiction")).categoryId;
+    const { books } = await dbUtils.getBooksByCategory(sciFiId, 10000, 0);
+    for (const book of books) {
+      let untouched = true;
+      for (const id of [userId, ...friends]) {
+        if (
+          (await dbUtils.getUserReview(id, book.bookId)) ||
+          (await dbUtils.getJournalByUser(id, book.bookId))
+        ) {
+          untouched = false;
+          break;
+        }
+      }
+      if (untouched) {
+        bookId = book.bookId;
+        break;
+      }
+    }
+  });
+
+  afterEach(async () => {
+    await dbUtils.setUserGenres(userId, []);
+    await dbUtils.unfollowUser(publicFriend, userId);
+    for (const id of friends) {
+      await dbUtils.unfollowUser(userId, id);
+      await dbUtils.deleteReview(id, bookId);
+    }
+    await dbUtils.deleteReview(userId, bookId);
+  });
+
+  it("should have an untouched Science Fiction book to test with", () => {
+    expect(bookId).toBeDefined();
+  });
+
+  it("should recommend a book a followed public user rated highly", async () => {
+    await dbUtils.followUser(userId, publicFriend);
+    await dbUtils.saveReview(publicFriend, bookId, 5, null);
+
+    const book = (await dbUtils.getRecommendations(userId, 10000)).find(
+      (b) => b.bookId === bookId,
+    );
+    expect(book).toBeDefined();
+    expect(book.matchScore).toBe(1); // 5★ = +2, at half weight
+    expect(book.likedBy).toEqual(["testUser4"]);
+  });
+
+  it("should ignore followed users with private profiles", async () => {
+    await dbUtils.followUser(userId, privateFriend);
+    await dbUtils.saveReview(privateFriend, bookId, 5, null);
+
+    expect(await ids()).not.toContain(bookId);
+  });
+
+  it("should ignore the user's followers", async () => {
+    // testUser4 follows testUser10, not the other way round
+    await dbUtils.followUser(publicFriend, userId);
+    await dbUtils.saveReview(publicFriend, bookId, 5, null);
+
+    expect(await ids()).not.toContain(bookId);
+  });
+
+  it("should not list a low rating under likedBy", async () => {
+    await dbUtils.setUserGenres(userId, [sciFiId]);
+    await dbUtils.followUser(userId, publicFriend);
+    await dbUtils.saveReview(publicFriend, bookId, 2, null);
+
+    const book = (await dbUtils.getRecommendations(userId, 10000)).find(
+      (b) => b.bookId === bookId,
+    );
+    expect(book.matchScore).toBe(2.5); // +3 genre pick, -1 × 0.5 for the 2★
+    expect(book.likedBy).toBeNull();
+  });
+
+  it("should weigh followed users' dislikes less than the user's own picks", async () => {
+    await dbUtils.setUserGenres(userId, [sciFiId]);
+    await dbUtils.followUser(userId, publicFriend);
+    await dbUtils.followUser(userId, otherPublicFriend);
+    await dbUtils.saveReview(publicFriend, bookId, 1, null);
+    await dbUtils.saveReview(otherPublicFriend, bookId, 1, null);
+
+    // +3 genre pick, two 1★ at -2 × 0.5 each: lowered but still recommended
+    const book = (await dbUtils.getRecommendations(userId, 10000)).find(
+      (b) => b.bookId === bookId,
+    );
+    expect(book.matchScore).toBe(1);
+  });
+
+  it("should drop a book that only followed users disliked", async () => {
+    await dbUtils.followUser(userId, publicFriend);
+    await dbUtils.saveReview(publicFriend, bookId, 1, null);
+
+    expect(await ids()).not.toContain(bookId);
+  });
+
+  it("should skip books the user already reviewed", async () => {
+    await dbUtils.followUser(userId, publicFriend);
+    await dbUtils.saveReview(publicFriend, bookId, 5, null);
+    await dbUtils.saveReview(userId, bookId, 4, null);
+
+    expect(await ids()).not.toContain(bookId);
+  });
+
+  it("should show friend recommendations without a taste profile", async () => {
+    await dbUtils.followUser(userId, publicFriend);
+    await dbUtils.saveReview(publicFriend, bookId, 5, null);
+
+    const agent = request.agent(app);
+    await agent.post("/login").send({
+      username: "testUser10",
+      password: "DummyPass10",
+    });
+    const res = await agent.get("/recommendations");
+
+    expect(res.status).toBe(200);
+    expect(res.text).toContain(`/books/${bookId}`);
+    expect(res.text).toContain("@testUser4");
+    expect(res.text).not.toContain("Pick some genres");
+  });
+});
