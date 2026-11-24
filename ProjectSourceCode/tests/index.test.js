@@ -1826,3 +1826,129 @@ describe("Recommendations from followed users", () => {
     expect(res.text).not.toContain("Pick some genres");
   });
 });
+
+describe("Homepage", () => {
+  describe("dbUtils getTopRatedBooks", () => {
+    it("should only include books with enough ratings, best first", async () => {
+      const books = await dbUtils.getTopRatedBooks(100, 2);
+
+      expect(books.length).toBeGreaterThan(0);
+      for (const book of books)
+        expect(book.ratingCount).toBeGreaterThanOrEqual(2);
+      const ratings = books.map((book) => book.avgRating);
+      expect(ratings).toEqual([...ratings].sort((a, b) => b - a));
+    });
+
+    it("should respect the limit", async () => {
+      expect(await dbUtils.getTopRatedBooks(1, 1)).toHaveLength(1);
+    });
+  });
+
+  describe("dbUtils getRandomGenres", () => {
+    it("should return distinct browse genres", async () => {
+      const genres = await dbUtils.getRandomGenres(3);
+      const slugs = genres.map((genre) => genre.slug);
+
+      expect(genres).toHaveLength(3);
+      expect(new Set(slugs).size).toBe(3);
+      for (const slug of slugs) expect(slug).toBeTruthy();
+    });
+
+    it("should leave out excluded genres", async () => {
+      const genres = await dbUtils.getRandomGenres(100, 1, ["fantasy"]);
+
+      expect(genres.length).toBeGreaterThan(0);
+      expect(genres.map((genre) => genre.slug)).not.toContain("fantasy");
+    });
+
+    it("should return nothing when asked for zero", async () => {
+      expect(await dbUtils.getRandomGenres(0)).toEqual([]);
+    });
+  });
+
+  describe("dbUtils getPopularInGenre", () => {
+    it("should only return books in that genre, most rated first", async () => {
+      const genre = await dbUtils.getGenreBySlug("science-fiction");
+      const books = await dbUtils.getPopularInGenre(genre.categoryId, 9);
+
+      expect(books.length).toBeGreaterThan(0);
+      for (const book of books) expect(book.categories).toContain(genre.name);
+      const counts = books.map((book) => book.ratingCount);
+      expect(counts).toEqual([...counts].sort((a, b) => b - a));
+    });
+  });
+
+  describe("dbUtils getRecentFollowedReviews", () => {
+    // testUser2 follows testUser1 (public) and testUser9/10 (private)
+    it("should only include public profiles the user follows", async () => {
+      const books = await dbUtils.getRecentFollowedReviews(2);
+
+      expect(books.length).toBeGreaterThan(0);
+      for (const book of books) expect(book.reviewer).toBe("testUser1");
+    });
+
+    it("should list each book once", async () => {
+      const ids = (await dbUtils.getRecentFollowedReviews(2)).map(
+        (book) => book.bookId,
+      );
+      expect(new Set(ids).size).toBe(ids.length);
+    });
+
+    it("should be empty for a user who follows nobody", async () => {
+      expect(await dbUtils.getRecentFollowedReviews(10)).toEqual([]);
+    });
+  });
+
+  describe("GET /home", () => {
+    it("should show top rated and random genre rows to guests", async () => {
+      const res = await request(app).get("/home");
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain("Top rated");
+      expect(res.text.match(/Popular in /g)).toHaveLength(3);
+      expect(res.text).not.toContain("Recommended for you");
+      expect(res.text).not.toContain("people you follow");
+    });
+
+    it("should show reviews from people the user follows", async () => {
+      const agent = request.agent(app);
+      await agent.post("/login").send({
+        username: "testUser2",
+        password: "DummyPass2",
+      });
+      const res = await agent.get("/home");
+
+      expect(res.status).toBe(200);
+      expect(res.text).toContain("Recently reviewed by people you follow");
+      expect(res.text).toContain("by @testUser1");
+    });
+
+    describe("with a taste profile", () => {
+      const userId = 10;
+      const agent = request.agent(app);
+
+      beforeAll(async () => {
+        const sciFi = await dbUtils.getGenreBySlug("science-fiction");
+        await dbUtils.setUserGenres(userId, [sciFi.categoryId]);
+        await agent.post("/login").send({
+          username: "testUser10",
+          password: "DummyPass10",
+        });
+      });
+
+      afterAll(async () => {
+        await dbUtils.setUserGenres(userId, []);
+      });
+
+      it("should lead with recommendations and the user's top genre", async () => {
+        const res = await agent.get("/home");
+
+        expect(res.status).toBe(200);
+        expect(res.text).toContain("Recommended for you");
+        expect(res.text).toContain("Popular in Science Fiction");
+        // Still three genre rows: the top genre plus two random ones
+        expect(res.text.match(/Popular in /g)).toHaveLength(3);
+      });
+    });
+  });
+});

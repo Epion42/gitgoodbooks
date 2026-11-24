@@ -197,8 +197,28 @@ body {
   height: 250px;
 }
 
+/* Cover on the left, text on the right. Fill the card's fixed height so
+   overflow: hidden clips extra text at the bottom of the card. */
 #mainpage .card > .row {
+  height: 100%;
   overflow: hidden;
+}
+
+/* Fixed-width cover column so the text column gets the rest */
+#mainpage .card .card-image {
+  flex: 0 0 120px;
+}
+
+/* Flex items won't shrink below their longest unbreakable text by default
+   (a nowrap title or badge), which pushed the text below the cover */
+#mainpage .card .card-image + .col {
+  min-width: 0;
+}
+
+/* Let long genre names wrap instead of widening the card */
+#mainpage .card .badge {
+  white-space: normal;
+  text-align: left;
 }
 
 .card-image {
