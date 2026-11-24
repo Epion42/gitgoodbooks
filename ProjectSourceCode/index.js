@@ -691,12 +691,43 @@ app.get("/recommendations", auth, async (req, res, next) => {
       dbUtils.getTasteProfile(userId),
     ]);
 
+    // ?dismissed=<id> after a dismiss, for the "Undo" banner
+    const dismissed =
+      typeof req.query.dismissed === "string" &&
+      BOOK_ID_PATTERN.test(req.query.dismissed)
+        ? req.query.dismissed
+        : null;
+
     res.render("pages/recommendations", {
       tab_name: "Recommendations",
       books: books,
       // Profile is sorted by score DESC, so these are the top liked genres
       topGenres: profile.filter((genre) => genre.score > 0).slice(0, 3),
+      dismissed: dismissed,
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/recommendations/:id/dismiss", auth, async (req, res, next) => {
+  try {
+    const bookId = requireBookId(req);
+    if (!(await dbUtils.bookExists(bookId)))
+      throw new HttpError(404, "Book not found.");
+
+    await dbUtils.dismissBook(req.session.user.userId, bookId);
+    res.redirect(`/recommendations?dismissed=${encodeURIComponent(bookId)}`);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/recommendations/:id/restore", auth, async (req, res, next) => {
+  try {
+    const bookId = requireBookId(req);
+    await dbUtils.restoreBook(req.session.user.userId, bookId);
+    res.redirect("/recommendations");
   } catch (error) {
     next(error);
   }

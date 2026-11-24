@@ -4,6 +4,17 @@
   <div class="col">
     <div class="container py-4">
       <h1 class="mb-2">Recommended for you</h1>
+      {{#if dismissed }}
+        <div class="alert alert-secondary d-flex align-items-center gap-2"
+             role="status">
+          Book hidden from your recommendations.
+          <form method="post"
+                action="/recommendations/{{dismissed}}/restore"
+                class="ms-auto">
+            <button type="submit" class="btn btn-link p-0">Undo</button>
+          </form>
+        </div>
+      {{/if}}
       {{#if topGenres }}
         <p class="text-muted mb-4">
           Based on your top genres:
@@ -13,9 +24,34 @@
           · <a href="/profile/taste">Edit taste profile</a>
         </p>
         {{#if books }}
-          {{> bookList}}
+          <div class="list-group">
+            {{#each books }}
+              <div class="list-group-item d-flex gap-3 align-items-center">
+                <a href="/books/{{bookId}}"
+                   class="d-flex gap-3 flex-grow-1 text-decoration-none text-body">
+                  {{#if thumbnail }}
+                    <img src="{{thumbnail}}" alt="" width="60" />
+                  {{/if}}
+                  <div>
+                    <h5 class="mb-1">{{title}}</h5>
+                    <p class="mb-0 text-muted">
+                      {{#each authors }}
+                        {{this}}{{#unless @last}},{{/unless}}
+                      {{/each}}
+                      {{#if publishYear }}
+                        · {{publishYear}}
+                      {{/if}}
+                    </p>
+                  </div>
+                </a>
+                <form method="post" action="/recommendations/{{bookId}}/dismiss">
+                  <button type="submit" class="btn btn-outline-secondary btn-sm">Not interested</button>
+                </form>
+              </div>
+            {{/each}}
+          </div>
         {{else}}
-          <p>You've already tracked every book we have in your genres. Try picking a few more genres.</p>
+          <p>You've already tracked or hidden every book we have in your genres. Try picking a few more genres.</p>
         {{/if}}
       {{else}}
         <p>
