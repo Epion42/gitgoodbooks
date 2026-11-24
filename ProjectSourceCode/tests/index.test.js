@@ -1952,3 +1952,78 @@ describe("Homepage", () => {
     });
   });
 });
+
+describe("Top Rated page", () => {
+  describe("dbUtils getTopRatedInGenre", () => {
+    it("should return at most the limit, all in the requested genre", async () => {
+      const genre = await dbUtils.getGenreBySlug("science-fiction");
+      const books = await dbUtils.getTopRatedInGenre(genre.categoryId, null, 5);
+
+      expect(books.length).toBeGreaterThan(0);
+      expect(books.length).toBeLessThanOrEqual(5);
+      for (const book of books) expect(book.categories).toContain(genre.name);
+    });
+
+    it("should put personal picks ahead of other books", async () => {
+      const genre = await dbUtils.getGenreBySlug("science-fiction");
+      const books = await dbUtils.getTopRatedInGenre(genre.categoryId, 1, 5);
+      const picks = books.map((book) => book.personalPick);
+
+      expect(picks).toEqual([...picks].sort((a, b) => Number(b) - Number(a)));
+    });
+  });
+
+  describe("GET /top-rated", () => {
+    it("should be available to guests, with an optional genre filter", async () => {
+      const all = await request(app).get("/top-rated");
+
+      expect(all.status).toBe(200);
+      expect(all.text).toContain("Top rated books");
+      expect(all.text).toContain("to get picks based on your own ratings");
+      expect(all.text).not.toContain("Edit taste profile");
+
+      const filtered = await request(app).get(
+        "/top-rated?genre=science-fiction",
+      );
+
+      expect(filtered.status).toBe(200);
+      expect(filtered.text).toContain("Science Fiction");
+    });
+
+    describe("when logged in", () => {
+      const userId = 1;
+      const agent = request.agent(app);
+      let originalGenres;
+
+      beforeAll(async () => {
+        originalGenres = await dbUtils.getUserGenreIds(userId);
+        const sciFi = await dbUtils.getGenreBySlug("science-fiction");
+        await dbUtils.setUserGenres(userId, [sciFi.categoryId]);
+        await agent.post("/login").send({
+          username: "testUser1",
+          password: "DummyPass1",
+        });
+      });
+
+      afterAll(async () => {
+        await dbUtils.setUserGenres(userId, originalGenres);
+      });
+
+      it("should use the viewer's taste profile", async () => {
+        const res = await agent.get("/top-rated");
+        const profile = await dbUtils.getTasteProfile(userId);
+        const topSlug = profile.find((genre) => genre.score > 0).slug;
+
+        expect(res.status).toBe(200);
+        expect(res.text).toContain("Edit taste profile");
+        expect(res.text).toContain(`/browse/${topSlug}`);
+      });
+    });
+
+    it("should reject an unknown genre", async () => {
+      const res = await request(app).get("/top-rated?genre=not-a-genre");
+
+      expect(res.status).toBe(404);
+    });
+  });
+});

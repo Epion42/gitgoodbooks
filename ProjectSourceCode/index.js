@@ -803,6 +803,86 @@ app.post("/recommendations/:id/restore", auth, async (req, res, next) => {
   }
 });
 
+const TOP_RATED_GENRE_COUNT = 3;
+const TOP_RATED_PER_GENRE = 5;
+
+// Public page: logged-in viewers get their own top liked genres, guests get
+// random ones. Books are ranked per genre by the viewer's own ratings first,
+// then (for guests or cold profiles) by smoothed community ratings.
+app.get("/top-rated", async (req, res, next) => {
+  try {
+    const userId = req.session.user?.userId ?? null;
+    const requestedSlug =
+      typeof req.query.genre === "string" ? req.query.genre : null;
+    const filteredGenre = requestedSlug
+      ? await dbUtils.getGenreBySlug(requestedSlug)
+      : null;
+    if (requestedSlug && !filteredGenre)
+      throw new HttpError(404, "Genre not found.");
+
+    let tasteGenres = [];
+    let genres;
+    if (filteredGenre) {
+      genres = [filteredGenre];
+    } else if (userId) {
+      tasteGenres = (await dbUtils.getTasteProfile(userId))
+        .filter((genre) => genre.score > 0)
+        .slice(0, TOP_RATED_GENRE_COUNT);
+      const randomGenres = await dbUtils.getRandomGenres(
+        TOP_RATED_GENRE_COUNT - tasteGenres.length,
+        3,
+        tasteGenres.map((genre) => genre.slug),
+      );
+      genres = [
+        ...(
+          await Promise.all(
+            tasteGenres.map((genre) => dbUtils.getGenreBySlug(genre.slug)),
+          )
+        ).filter(Boolean),
+        ...randomGenres,
+      ];
+    } else {
+      genres = await dbUtils.getRandomGenres(TOP_RATED_GENRE_COUNT, 3);
+    }
+
+    const booksByGenre = await Promise.all(
+      genres.map((genre) =>
+        dbUtils.getTopRatedInGenre(
+          genre.categoryId,
+          userId,
+          TOP_RATED_PER_GENRE,
+        ),
+      ),
+    );
+
+    // Books can belong to several genres; show each one only in its first section.
+    const seen = new Set();
+    const sections = genres
+      .map((genre, index) => ({
+        genre: genre,
+        books: booksByGenre[index].filter((book) => {
+          if (seen.has(book.bookId)) return false;
+          seen.add(book.bookId);
+          return true;
+        }),
+      }))
+      .filter((section) => section.books.length > 0);
+
+    res.render("pages/top-rated", {
+      tab_name: "Top rated",
+      sections: sections,
+      genreOptions: await dbUtils.getGenres(),
+      selectedSlug: filteredGenre?.slug ?? null,
+      isPersonalised: Boolean(userId),
+      hasTaste: !filteredGenre && tasteGenres.length > 0,
+    });
+  } catch (error) {
+    if (error instanceof HttpError && error.status === 404)
+      return sendError(res, error, { tabName: "Genre not found" });
+    next(error);
+  }
+});
+
 const BROWSE_PAGE_SIZE = 24;
 
 app.get("/browse", async (req, res, next) => {
