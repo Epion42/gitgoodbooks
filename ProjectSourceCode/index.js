@@ -589,8 +589,78 @@ app.post("/logout", auth, (req, res, next) => {
   });
 });
 
-app.get("/home", async (req, res) => {
-  res.render("pages/home", { tab_name: "Home" });
+const HOME_ROW_SIZE = 9; // 3 slides of 3 books
+const HOME_GENRE_ROWS = 3;
+
+// Turns a list of books into a carousel row for home.hbs. Returns null for an
+// empty list so the caller can drop rows with nothing to show.
+function carouselRow(id, title, books, seeAll = null) {
+  if (books.length === 0) return null;
+  const slides = [];
+  for (let i = 0; i < books.length; i += 3) slides.push(books.slice(i, i + 3));
+  return { id, title, seeAll, slides, multiSlide: slides.length > 1 };
+}
+
+app.get("/home", async (req, res, next) => {
+  try {
+    const userId = req.session.user?.userId;
+
+    // Logged-in users get their top liked genres first, topped up with random
+    // ones. Guests (and users without a taste profile) get random genres.
+    const topGenres = userId
+      ? (await dbUtils.getTasteProfile(userId))
+          .filter((genre) => genre.score > 0)
+          .slice(0, HOME_GENRE_ROWS)
+      : [];
+    const randomGenres = await dbUtils.getRandomGenres(
+      HOME_GENRE_ROWS - topGenres.length,
+      3,
+      topGenres.map((genre) => genre.slug),
+    );
+    const genres = [
+      ...(await Promise.all(
+        topGenres.map((genre) => dbUtils.getGenreBySlug(genre.slug)),
+      )),
+      ...randomGenres,
+    ];
+
+    const [recommended, followedReviews, topRated, ...genreBooks] =
+      await Promise.all([
+        userId ? dbUtils.getRecommendations(userId, HOME_ROW_SIZE) : [],
+        userId ? dbUtils.getRecentFollowedReviews(userId, HOME_ROW_SIZE) : [],
+        dbUtils.getTopRatedBooks(HOME_ROW_SIZE),
+        ...genres.map((genre) =>
+          dbUtils.getPopularInGenre(genre.categoryId, HOME_ROW_SIZE),
+        ),
+      ]);
+
+    const rows = [
+      carouselRow(
+        "row-recommended",
+        "Recommended for you",
+        recommended,
+        "/recommendations",
+      ),
+      carouselRow(
+        "row-following",
+        "Recently reviewed by people you follow",
+        followedReviews,
+      ),
+      carouselRow("row-top-rated", "Top rated", topRated),
+      ...genres.map((genre, i) =>
+        carouselRow(
+          `row-genre-${genre.slug}`,
+          `Popular in ${genre.name}`,
+          genreBooks[i],
+          `/browse/${genre.slug}`,
+        ),
+      ),
+    ].filter(Boolean);
+
+    res.render("pages/home", { tab_name: "Home", rows: rows });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.get("/search", async (req, res, next) => {

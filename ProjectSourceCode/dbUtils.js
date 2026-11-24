@@ -34,6 +34,16 @@ db.connect()
 const BOOK_COLUMNS = `b.bookId AS "bookId", b.bookTitle AS "title", b.authors,
   b.publishDate AS "publishYear", b.thumbnail`;
 
+// BOOK_COLUMNS plus what the homepage cards show: page count and the book's
+// browse genres (slugged categories only, the raw Google list is noisy)
+const CARD_COLUMNS = `${BOOK_COLUMNS}, b.pageCount AS "pageCount",
+  ARRAY(
+    SELECT c.categoryName FROM bookToCategory bc2
+    JOIN category c ON c.categoryId = bc2.categoryId
+    WHERE bc2.bookId = b.bookId AND c.slug IS NOT NULL
+    ORDER BY c.categoryName
+  ) AS "categories"`;
+
 // How much a followed user's rating/like counts in recommendations, relative
 // to the user's own genre score. Below 1 so the user's own taste comes first.
 const FOLLOWING_WEIGHT = 0.5;
@@ -204,6 +214,67 @@ class DbUtils {
       LIMIT $2 OFFSET $3;`;
     const rows = await db.any(query, [categoryId, limit, offset]);
     return { books: rows, total: rows[0]?.total ?? 0 };
+  }
+
+  // Browse genres with at least minBooks books, in random order. Used for the
+  // homepage genre rows when there's no taste profile to go on.
+  async getRandomGenres(count, minBooks = 3, excludeSlugs = []) {
+    const query = `SELECT c.categoryId AS "categoryId", c.categoryName AS "name", c.slug
+      FROM category c
+      JOIN bookToCategory bc ON bc.categoryId = c.categoryId
+      WHERE c.slug IS NOT NULL AND c.slug <> ALL($3::text[])
+      GROUP BY c.categoryId
+      HAVING COUNT(*) >= $2
+      ORDER BY random()
+      LIMIT $1;`;
+    return await db.any(query, [count, minBooks, excludeSlugs]);
+  }
+
+  // Most-rated books in a genre, best rated first. Unrated books fill the rest
+  // in an order that changes daily so the row isn't always alphabetical.
+  async getPopularInGenre(categoryId, limit = 9) {
+    const query = `SELECT ${CARD_COLUMNS},
+        r.avgRating::float AS "avgRating", r.ratingCount::int AS "ratingCount"
+      FROM books b
+      JOIN bookToCategory bc ON bc.bookId = b.bookId
+      JOIN bookRatings r ON r.bookId = b.bookId
+      WHERE bc.categoryId = $1
+      ORDER BY r.ratingCount DESC, r.avgRating DESC NULLS LAST,
+        md5(b.bookId || current_date::text)
+      LIMIT $2;`;
+    return await db.any(query, [categoryId, limit]);
+  }
+
+  // Highest average rating, with a minimum number of ratings so a single
+  // 5★ doesn't top the list
+  async getTopRatedBooks(limit = 9, minRatings = 2) {
+    const query = `SELECT ${CARD_COLUMNS},
+        r.avgRating::float AS "avgRating", r.ratingCount::int AS "ratingCount"
+      FROM bookRatings r
+      JOIN books b ON b.bookId = r.bookId
+      WHERE r.ratingCount >= $2
+      ORDER BY r.avgRating DESC, r.ratingCount DESC, b.bookId
+      LIMIT $1;`;
+    return await db.any(query, [limit, minRatings]);
+  }
+
+  // Latest review of each book by people the user follows (public profiles
+  // only, same rule as recommendations), newest first
+  async getRecentFollowedReviews(userId, limit = 9) {
+    const query = `SELECT * FROM (
+        SELECT DISTINCT ON (b.bookId) ${CARD_COLUMNS},
+          u.username AS "reviewer",
+          repeat('★', r.reviewScore::int) || repeat('☆', 5 - r.reviewScore::int) AS "stars",
+          r.timePosted AS "timePosted"
+        FROM review r
+        JOIN follower f ON f.targetUserId = r.userId AND f.followerUserId = $1
+        JOIN users u ON u.userId = r.userId AND u.profilePublic
+        JOIN books b ON b.bookId = r.bookId
+        ORDER BY b.bookId, r.timePosted DESC
+      ) latest
+      ORDER BY "timePosted" DESC, "bookId"
+      LIMIT $2;`;
+    return await db.any(query, [userId, limit]);
   }
 
   async bookExists(bookId) {

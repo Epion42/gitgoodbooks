@@ -4,102 +4,132 @@
 
   <div class="col py-4 px-3">
     <div id="mainpage" class="row row-cols-1 g-3">
-      {{! An array of rows for the homepages, each 3 Slides that are arrays, each of them having an array of 3 books}}
-      {{#each HomepageBookRow }}
-        <div class="col rounded-1">
-          <div id="{{@key}}" class="carousel slide book-row" data-bs-ride="carousel">
-            <div class="carousel-indicators">
-              <button type="button"
-                      data-bs-target="#{{@key}}"
-                      data-bs-slide-to="0"
-                      class="active"
-                      aria-current="true"
-                      aria-label="Slide 1"></button>
-              <button type="button"
-                      data-bs-target="#{{@key}}"
-                      data-bs-slide-to="1"
-                      aria-label="Slide 2"></button>
-              <button type="button"
-                      data-bs-target="#{{@key}}"
-                      data-bs-slide-to="2"
-                      aria-label="Slide 3"></button>
-            </div>
+      {{! rows: [{ id, title, seeAll, multiSlide, slides: [[book, book, book], ...] }] }}
+      {{#each rows }}
+        <div class="col">
+          <div class="d-flex align-items-baseline justify-content-between mb-2">
+            <h2 class="h4 mb-0">{{title}}</h2>
+            {{#if seeAll }}
+              <a href="{{seeAll}}">See all →</a>
+            {{/if}}
+          </div>
+          <div id="{{id}}"
+               class="carousel slide book-row rounded-1"
+               data-bs-ride="carousel">
+            {{#if multiSlide }}
+              <div class="carousel-indicators">
+                {{#each slides }}
+                  <button type="button"
+                          data-bs-target="#{{../id}}"
+                          data-bs-slide-to="{{@index}}"
+                          class="{{#if @first }}active{{/if}}"
+                          aria-label="Go to slide"></button>
+                {{/each}}
+              </div>
+            {{/if}}
             <div class="carousel-inner">
-              {{! Each an array of Slides, each with of 3 books}}
-              {{#each CarouselSlide }}
-                <div class="carousel-item {{#if @first }} active {{/if }}">
+              {{#each slides }}
+                <div class="carousel-item {{#if @first }}active{{/if}}">
                   <div class="row row-cols-3 justify-content-center">
-                    {{! An array of 3 books}}
-                    {{#each Books }}
+                    {{#each this }}
                       <div class="col-3 p-3">
                         <div class="card mb-3">
-                          <div class="row g-0">
+                          <div class="row g-0 flex-nowrap">
                             <div class="col-auto card-image">
                               <a href="/books/{{bookId}}">
-                                <img src="{{thumbnail}}"
+                                <img src="{{#if thumbnail }}{{thumbnail}}{{else}}/resources/img/default_cover.jpg{{/if}}"
                                      class="img-fluid rounded-start"
                                      alt="Cover of {{title}}">
                               </a>
                             </div>
                             <div class="col">
                               <div class="card-body">
-                                <h5 class="card-title">{{title}}</h5>
-                                <p class="card-text">{{publishYear}}</p>
-                                <p class="card-text">
-                                  by
-                                  {{#each authors }}
-                                    {{#if @first }}
-                    {{this}}{{else}} ,{{this}}{{/if}}{{/each}}
-                      </p>
-                      <p class="card-text">
-                        <small class="text-body-secondary">{{pageCount}} pages</small>
-                      </p>
-                      <p class="card-text">
-                        <small class="text-body-secondary">
-                          {{#each categories }}
-                            <span class="genre badge me-1">{{this}}</span>
-                          {{/each}}
-                        </small>
-                      </p>
-
-                      </div>
-                      </div>
-                      </div>
-                      </div>
+                                <h5 class="card-title text-truncate">
+                                  <a href="/books/{{bookId}}" class="text-reset text-decoration-none">{{title}}</a>
+                                </h5>
+                                {{#if publishYear }}
+                                  <p class="card-text mb-1">{{publishYear}}</p>
+                                {{/if}}
+                                {{#if authors }}
+                                  <p class="card-text mb-1">
+                                    by
+                                    {{#each authors }}
+                                      {{this}}{{#unless @last}},{{/unless}}
+                                    {{/each}}
+                                  </p>
+                                {{/if}}
+                                {{! Context line: each row's books only have one of these set }}
+                                {{#if reviewer }}
+                                  <p class="card-text mb-1">
+                                    <small>{{stars}} by @{{reviewer}}</small>
+                                  </p>
+                                {{/if}}
+                                {{#if likedBy }}
+                                  <p class="card-text mb-1">
+                                    <small>Liked by
+                                      {{#each likedBy }}
+                                        @{{this}}{{#unless @last}},{{/unless}}
+                                      {{/each}}
+                                    </small>
+                                  </p>
+                                {{/if}}
+                                {{#if avgRating }}
+                                  <p class="card-text mb-1">
+                                    <small>★ {{avgRating}} ({{ratingCount}})</small>
+                                  </p>
+                                {{/if}}
+                                {{#if pageCount }}
+                                  <p class="card-text mb-1">
+                                    <small class="text-body-secondary">{{pageCount}} pages</small>
+                                  </p>
+                                {{/if}}
+                                {{#if categories }}
+                                  <p class="card-text">
+                                    {{#each categories }}
+                                      <span class="genre badge me-1">{{this}}</span>
+                                    {{/each}}
+                                  </p>
+                                {{/if}}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     {{/each}}
                   </div>
                 </div>
               {{/each}}
             </div>
-            <button class="carousel-control-prev"
-                    type="button"
-                    data-bs-target="#{{@key}}"
-                    data-bs-slide="prev">
-              <svg xmlns="http://www.w3.org/2000/svg"
-                   width="128"
-                   height="128"
-                   fill="currentColor"
-                   class="bi bi-chevron-compact-left"
-                   viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M9.224 1.553a.5.5 0 0 1 .223.67L6.56 8l2.888 5.776a.5.5 0 1 1-.894.448l-3-6a.5.5 0 0 1 0-.448l3-6a.5.5 0 0 1 .67-.223" />
-              </svg>
-              <span class="visually-hidden">Previous</span>
-            </button>
-            <button class="carousel-control-next"
-                    type="button"
-                    data-bs-target="#{{@key}}"
-                    data-bs-slide="next">
-              <svg xmlns="http://www.w3.org/2000/svg"
-                   width="128"
-                   height="128"
-                   fill="currentColor"
-                   class="bi bi-chevron-compact-right"
-                   viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M6.776 1.553a.5.5 0 0 1 .671.223l3 6a.5.5 0 0 1 0 .448l-3 6a.5.5 0 1 1-.894-.448L9.44 8 6.553 2.224a.5.5 0 0 1 .223-.671" />
-              </svg>
-              <span class="visually-hidden">Next</span>
-            </button>
+            {{#if multiSlide }}
+              <button class="carousel-control-prev"
+                      type="button"
+                      data-bs-target="#{{id}}"
+                      data-bs-slide="prev">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="128"
+                     height="128"
+                     fill="currentColor"
+                     class="bi bi-chevron-compact-left"
+                     viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M9.224 1.553a.5.5 0 0 1 .223.67L6.56 8l2.888 5.776a.5.5 0 1 1-.894.448l-3-6a.5.5 0 0 1 0-.448l3-6a.5.5 0 0 1 .67-.223" />
+                </svg>
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button class="carousel-control-next"
+                      type="button"
+                      data-bs-target="#{{id}}"
+                      data-bs-slide="next">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="128"
+                     height="128"
+                     fill="currentColor"
+                     class="bi bi-chevron-compact-right"
+                     viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M6.776 1.553a.5.5 0 0 1 .671.223l3 6a.5.5 0 0 1 0 .448l-3 6a.5.5 0 1 1-.894-.448L9.44 8 6.553 2.224a.5.5 0 0 1 .223-.671" />
+                </svg>
+                <span class="visually-hidden">Next</span>
+              </button>
+            {{/if}}
           </div>
         </div>
       {{/each}}
