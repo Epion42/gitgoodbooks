@@ -245,6 +245,56 @@ class DbUtils {
     return await db.any(query, [categoryId, limit]);
   }
 
+  // Top books in one genre for the /top-rated page. Personal signals come
+  // first (own ratings/likes, then public people the viewer follows), followed
+  // by community ratings smoothed toward the global mean so a lone 5★ can't
+  // dominate. The last key rotates the tie-break daily without any refresh job.
+  async getTopRatedInGenre(categoryId, userId = null, limit = 5) {
+    const query = `WITH signals AS (
+        SELECT bookId, SUM(weight) AS weight FROM (
+          SELECT bookId, (reviewScore - 3) * 2 AS weight
+            FROM review WHERE userId = $2::int
+          UNION ALL
+          SELECT bookId, score * 2 AS weight
+            FROM journal WHERE userId = $2::int AND score <> 0
+          UNION ALL
+          SELECT r.bookId, (r.reviewScore - 3) * 2 * $4::numeric AS weight
+            FROM review r
+            JOIN follower f ON f.targetUserId = r.userId AND f.followerUserId = $2::int
+            JOIN users u ON u.userId = r.userId AND u.profilePublic
+          UNION ALL
+          SELECT j.bookId, j.score * 2 * $4::numeric AS weight
+            FROM journal j
+            JOIN follower f ON f.targetUserId = j.userId AND f.followerUserId = $2::int
+            JOIN users u ON u.userId = j.userId AND u.profilePublic
+            WHERE j.score <> 0
+        ) AS s GROUP BY bookId
+      ),
+      globalMean AS (
+        SELECT COALESCE(AVG(reviewScore), 3.5) AS mean FROM review
+      )
+      SELECT ${CARD_COLUMNS},
+        COALESCE(s.weight, 0)::float AS "personalScore",
+        (COALESCE(s.weight, 0) > 0) AS "personalPick",
+        r.avgRating::float AS "avgRating",
+        r.ratingCount::int AS "ratingCount",
+        ((COALESCE(r.avgRating, gm.mean) * COALESCE(r.ratingCount, 0)
+          + 3 * gm.mean) / (COALESCE(r.ratingCount, 0) + 3))::float
+          AS "adjustedRating"
+      FROM books b
+      JOIN bookToCategory bc ON bc.bookId = b.bookId AND bc.categoryId = $1
+      LEFT JOIN signals s ON s.bookId = b.bookId
+      LEFT JOIN bookRatings r ON r.bookId = b.bookId
+      CROSS JOIN globalMean gm
+      ORDER BY (COALESCE(s.weight, 0) > 0) DESC,
+        COALESCE(s.weight, 0) DESC,
+        (COALESCE(r.ratingCount, 0) > 0) DESC,
+        "adjustedRating" DESC,
+        md5(b.bookId || COALESCE($2::text, 'guest') || current_date::text)
+      LIMIT $3;`;
+    return await db.any(query, [categoryId, userId, limit, FOLLOWING_WEIGHT]);
+  }
+
   // Highest average rating, with a minimum number of ratings so a single
   // 5★ doesn't top the list
   async getTopRatedBooks(limit = 9, minRatings = 2) {

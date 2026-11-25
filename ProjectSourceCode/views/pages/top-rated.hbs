@@ -1,0 +1,50 @@
+{{! Top Rated Page Template }}
+<div class="row">
+  {{> sidebar}}
+  <div class="col">
+    <div class="container py-4">
+      <h1 class="mb-2">Top rated books</h1>
+      <p class="text-muted mb-4">
+        {{#if isPersonalised }}
+          Ranked using your own ratings and likes{{#if hasTaste }} in your top genres{{/if}}.
+          <a href="/profile/taste">Edit taste profile</a>
+        {{else}}
+          <a href="/login">Log in</a> to get picks based on your own ratings.
+        {{/if}}
+      </p>
+      <form method="get"
+            action="/top-rated"
+            class="mb-4 row g-2 align-items-center">
+        <div class="col-auto">
+          <label for="top-rated-genre" class="form-label mb-0">Filter by genre</label>
+        </div>
+        <div class="col-auto">
+          <select id="top-rated-genre"
+                  name="genre"
+                  class="form-select"
+                  onchange="this.form.submit()">
+            <option value="">All genres</option>
+            {{#each genreOptions }}
+              <option value="{{slug}}" {{#if (eq slug ../selectedSlug) }}selected{{/if}}>{{name}}</option>
+            {{/each}}
+          </select>
+        </div>
+      </form>
+      {{#each sections }}
+        <section class="mb-5">
+          <div class="d-flex align-items-baseline justify-content-between mb-2">
+            <h2 class="h4 mb-0">
+              <a href="/browse/{{genre.slug}}">{{genre.name}}</a>
+            </h2>
+            {{#unless ../selectedSlug}}
+              <a href="/browse/{{genre.slug}}">View genre →</a>
+            {{/unless}}
+          </div>
+          {{> bookList books=books}}
+        </section>
+      {{else}}
+        <p class="text-muted">No books to show yet. Try another genre.</p>
+      {{/each}}
+    </div>
+  </div>
+</div>

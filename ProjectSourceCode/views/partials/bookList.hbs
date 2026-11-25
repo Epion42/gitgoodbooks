@@ -15,6 +15,13 @@
             · {{publishYear}}
           {{/if}}
         </p>
+        {{! Only present on the top-rated page }}
+        {{#if avgRating }}
+          <p class="mb-0 small text-muted">★ {{avgRating}} ({{ratingCount}} ratings)</p>
+        {{/if}}
+        {{#if personalPick }}
+          <p class="mb-0 small text-success">Matches your taste</p>
+        {{/if}}
       </div>
     </a>
   {{else}}
