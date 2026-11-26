@@ -1,0 +1,122 @@
+{{! Top Readers Page Template }}
+<div class="row">
+  {{> sidebar}}
+  <div class="col">
+    <div class="container py-4">
+      <h1 class="mb-2">Top readers</h1>
+      <p class="text-muted mb-4">Public profiles only, ranked by books marked as completed.</p>
+
+      <ul class="nav nav-pills mb-4" aria-label="Time period">
+        <li class="nav-item">
+          <a class="nav-link {{#if (eq period "all") }}active{{/if}}"
+             {{#if (eq period "all") }}aria-current="page"
+             {{/if}}
+             href="/top-readers?period=all">All time</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{#if (eq period "7d") }}active{{/if}}"
+             {{#if (eq period "7d") }}aria-current="page"
+             {{/if}}
+             href="/top-readers?period=7d">Past 7 days</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {{#if (eq period "30d") }}active{{/if}}"
+             {{#if (eq period "30d") }}aria-current="page"
+             {{/if}}
+             href="/top-readers?period=30d">Past 30 days</a>
+        </li>
+      </ul>
+
+      <section class="mb-5">
+        <h2 class="h4 mb-3">Leaderboard</h2>
+        {{#if readers.length }}
+          <ul class="list-group">
+            {{#each readers }}
+              <li class="list-group-item d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-3">
+                  <span class="badge rounded-pill text-bg-secondary fs-6">{{rank}}</span>
+                  <div>
+                    <a class="link-body-emphasis text-decoration-none fw-semibold"
+                       href="/profile/{{username}}">{{username}}</a>
+                    <div class="text-muted small">
+                      {{completedCount}}
+            {{#if (eq completedCount 1) }}book{{else}}books{{/if}}
+              completed
+              {{#if lastFinishedOn }}· last finished {{lastFinishedOn}}{{/if}}
+              </div>
+              </div>
+              </div>
+              {{#if ../currentUser }}
+                {{#unless (eq userId ../currentUser.userId) }}
+                  <form method="post" action="/profile/{{username}}/{{followAction}}">
+                    <input type="hidden"
+                           name="returnTo"
+                           value="/top-readers?period={{../period}}" />
+                <button type="submit"
+                        class="btn btn-sm {{#if isFollowedByViewer }}btn-secondary{{else}}btn-primary{{/if}}">
+                {{#if isFollowedByViewer }}Unfollow{{else}}Follow{{/if}}
+                  </button>
+                  </form>
+                {{/unless}}
+              {{/if}}
+              </li>
+            {{/each}}
+          </ul>
+        {{else}}
+          <p class="text-muted mb-0">No public reader has finished a book in this period. Try a longer period.</p>
+        {{/if}}
+      </section>
+
+      <section>
+        <h2 class="h4 mb-1">People you follow are reading</h2>
+        <p class="text-muted small mb-3">One current book per public profile.</p>
+        {{#if currentUser }}
+          {{#if followedReading.length }}
+            <ul class="list-group">
+              {{#each followedReading }}
+                <li class="list-group-item d-flex flex-wrap align-items-center justify-content-between gap-3">
+                  <a href="/books/{{bookId}}"
+                     class="d-flex align-items-center gap-3 flex-grow-1 text-reset text-decoration-none">
+                    {{#if thumbnail }}
+                      <img src="{{thumbnail}}" alt="Cover of {{title}}" class="profile-cover-sm" />
+                    {{else}}
+                      <img src="/resources/img/default_cover.jpg"
+                           alt="No cover available for {{title}}"
+                           class="profile-cover-sm" />
+                    {{/if}}
+                    <div>
+                      <h3 class="h6 mb-1">{{title}}</h3>
+                      <p class="mb-0 text-muted small">
+                        {{#if authors }}
+                          {{#each authors }}
+                            {{this}}{{#unless @last}}, {{/unless}}
+                          {{/each}}
+                        {{else}}
+                          Unknown author
+                        {{/if}}
+                      </p>
+                    </div>
+                  </a>
+                  <div class="text-end">
+                    <a class="link-body-emphasis text-decoration-none fw-semibold"
+                       href="/profile/{{username}}">{{username}}</a>
+                    <div class="text-muted small">
+                      {{#if startedOn }}started {{startedOn}}{{/if}}
+                        {{#if completedCount }}· {{completedCount}} finished{{/if}}
+                        </div>
+                      </div>
+                    </li>
+              {{/each}}
+            </ul>
+          {{else}}
+            <p class="text-muted mb-0">Nobody you follow is reading a public book right now.</p>
+          {{/if}}
+        {{else}}
+          <p class="text-muted mb-0">
+            <a href="/login">Log in</a> to see what people you follow are reading.
+          </p>
+        {{/if}}
+      </section>
+    </div>
+  </div>
+</div>

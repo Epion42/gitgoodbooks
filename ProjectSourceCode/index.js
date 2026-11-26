@@ -883,6 +883,43 @@ app.get("/top-rated", async (req, res, next) => {
   }
 });
 
+const TOP_READERS_LIMIT = 5;
+const TOP_READER_PERIODS = ["7d", "30d", "all"];
+
+// Public leaderboard plus, for signed-in users, one current read per public
+// person they follow.
+app.get("/top-readers", async (req, res, next) => {
+  try {
+    const period = TOP_READER_PERIODS.includes(req.query.period)
+      ? req.query.period
+      : "all";
+    const viewerUserId = req.session.user?.userId ?? null;
+    const [readers, followedReading] = await Promise.all([
+      dbUtils.getTopReaders(period, viewerUserId, TOP_READERS_LIMIT),
+      viewerUserId
+        ? dbUtils.getFollowedCurrentlyReading(
+            viewerUserId,
+            period,
+            TOP_READERS_LIMIT,
+          )
+        : Promise.resolve([]),
+    ]);
+
+    res.render("pages/top-readers", {
+      tab_name: "Top readers",
+      period: period,
+      readers: readers.map((reader, index) => ({
+        ...reader,
+        rank: index + 1,
+        followAction: reader.isFollowedByViewer ? "unfollow" : "follow",
+      })),
+      followedReading: followedReading,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 const BROWSE_PAGE_SIZE = 24;
 
 app.get("/browse", async (req, res, next) => {

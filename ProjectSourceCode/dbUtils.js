@@ -48,6 +48,9 @@ const CARD_COLUMNS = `${BOOK_COLUMNS}, b.pageCount AS "pageCount",
 // to the user's own genre score. Below 1 so the user's own taste comes first.
 const FOLLOWING_WEIGHT = 0.5;
 
+// Trailing windows for the Top Readers leaderboard; null means all time.
+const TOP_READER_WINDOWS = { "7d": 7, "30d": 30, all: null };
+
 class DbUtils {
   constructor() {}
 
@@ -145,6 +148,56 @@ class DbUtils {
       WHERE f.followerUserId = $1
       ORDER BY lower(u.username);`;
     return await db.any(query, [userId, viewerUserId]);
+  }
+
+  // Public readers with the most completed books in the selected window. The
+  // EXISTS column lets the page show follow/unfollow buttons without another
+  // query per row. Unknown periods fall back to all time.
+  async getTopReaders(period = "all", viewerUserId = null, limit = 5) {
+    const days = TOP_READER_WINDOWS[period] ?? null;
+    const query = `
+      SELECT u.userId AS "userId", u.username,
+        COUNT(*)::int AS "completedCount",
+        to_char(MAX(j.finishedOn), 'Mon DD, YYYY') AS "lastFinishedOn",
+        EXISTS (
+          SELECT 1 FROM follower vf
+          WHERE vf.followerUserId = $1::int AND vf.targetUserId = u.userId
+        ) AS "isFollowedByViewer"
+      FROM journal j
+      JOIN users u ON u.userId = j.userId AND u.profilePublic
+      WHERE j.status = 'COMPLETED'
+        AND ($2::int IS NULL OR j.finishedOn >=
+             CURRENT_DATE - make_interval(days => $2::int))
+      GROUP BY u.userId, u.username
+      ORDER BY "completedCount" DESC, lower(u.username), u.userId
+      LIMIT $3;`;
+    return await db.any(query, [viewerUserId, days, limit]);
+  }
+
+  // One current read per public user the viewer follows. Completion counts use
+  // the same window as the leaderboard so both sections stay in sync.
+  async getFollowedCurrentlyReading(userId, period = "all", limit = 5) {
+    const days = TOP_READER_WINDOWS[period] ?? null;
+    const query = `
+      SELECT * FROM (
+        SELECT DISTINCT ON (u.userId)
+          u.userId AS "userId", u.username, ${CARD_COLUMNS},
+          to_char(j.startedOn, 'Mon DD, YYYY') AS "startedOn",
+          (SELECT COUNT(*)::int FROM journal c
+           WHERE c.userId = u.userId AND c.status = 'COMPLETED'
+             AND ($2::int IS NULL OR c.finishedOn >=
+                  CURRENT_DATE - make_interval(days => $2::int)))
+            AS "completedCount"
+        FROM follower f
+        JOIN users u ON u.userId = f.targetUserId AND u.profilePublic
+        JOIN journal j ON j.userId = u.userId AND j.status = 'IN_PROGRESS'
+        JOIN books b ON b.bookId = j.bookId
+        WHERE f.followerUserId = $1::int
+        ORDER BY u.userId, j.startedOn DESC NULLS LAST, b.bookId
+      ) AS followed
+      ORDER BY "completedCount" DESC, lower(username), "userId"
+      LIMIT $3;`;
+    return await db.any(query, [userId, days, limit]);
   }
 
   async saveBook(book) {
