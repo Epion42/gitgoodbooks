@@ -125,3 +125,20 @@ FROM (VALUES
 ) AS v(bookId, status, score, startedOn, finishedOn, currentPage, addedOn)
 JOIN users u ON u.username = 'testUser1'
 ON CONFLICT (bookId, userId) DO NOTHING;
+
+INSERT INTO journal (bookId, userId, status, score, startedOn, finishedOn, addedOn)
+SELECT v.bookId, u.userId, 'COMPLETED', 1,
+       v.finishedOn - 7, v.finishedOn,
+       v.finishedOn::timestamp - INTERVAL '14 days'
+FROM (VALUES
+  ('zV4tMELLupsC', 'testUser1', CURRENT_DATE - 1),
+  ('vWCpAQAACAAJ', 'testUser1', CURRENT_DATE - 3),
+  ('84BbAAAAMAAJ', 'testUser1', CURRENT_DATE - 9),
+  ('TKgOAQAAMAAJ', 'testUser1', CURRENT_DATE - 18),
+  ('0zWbv25MEzkC', 'testUser1', CURRENT_DATE - 40),
+  ('hQONI55NRxsC', 'testUser4', CURRENT_DATE - 2),
+  ('BRpZDwAAQBAJ', 'testUser4', CURRENT_DATE - 6),
+  ('1FNSvgAACAAJ', 'testUser4', CURRENT_DATE - 20)
+) AS v(bookId, username, finishedOn)
+JOIN users u ON u.username = v.username
+ON CONFLICT (bookId, userId) DO NOTHING;
